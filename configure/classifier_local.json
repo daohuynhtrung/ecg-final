@@ -1,0 +1,14 @@
+{
+  "data_path": "/data/Full_data_for_ML",
+  "plot_path" :"/data/plot-image",
+  "input_vector_size": 450,
+  "epochs": 2,
+  "batch_size": 128,
+  "dropout": 0.5,
+  "dense_size": 64,
+  "label_size": 2,
+  "checkpoint": "/home/trung/py",
+  "load_data_fn": "gtopia_ml.data.DataHelper.rr_load_raw_f1",
+  "k": 2,
+  "model": "gtopia_ml.models.models.lstm_classifier"
+}

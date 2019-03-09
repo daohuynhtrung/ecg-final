@@ -1,0 +1,10 @@
+{
+  "data_path": "/data/autoencoder_data",
+  "input_vector_size": 128,
+  "epochs": 10,
+  "batch_size": 128,
+  "dropout": 0.1,
+  "dense_size": 64,
+  "label_size": 2,
+  "checkpoint": "./checkpoint"
+}

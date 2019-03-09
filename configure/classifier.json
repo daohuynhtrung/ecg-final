@@ -1,0 +1,14 @@
+{
+  "data_path": "/data/Full_data_for_ML",
+  "plot_path" :"/home/run/trung/data/plot-image",
+  "input_vector_size": 450,
+  "epochs": 50,
+  "batch_size": 128,
+  "dropout": 0.5,
+  "dense_size": 64,
+  "label_size": 2,
+  "checkpoint": "/home/run/trung/data/output_kfold_model",
+  "load_data_fn": "source.data.DataHelper.rr_load_raw_f1",
+  "k": 5,
+  "model": "source.models.models.lstm_classifier"
+}
