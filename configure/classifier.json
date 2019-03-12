@@ -10,5 +10,5 @@
   "checkpoint": "/home/run/trung/data/output_kfold_model",
   "load_data_fn": "source.data.DataHelper.rr_load_raw_f1",
   "k": 5,
-  "model": "source.models.models.lstm_classifier"
+  "model": "source.models.model_2_lstm.multiple_lstm_classifier"
 }

@@ -8,6 +8,7 @@ from sklearn.metrics import accuracy_score
 from source import utils
 from source.data.DataHelper import k_fold_single_rr_data_pipeline
 from source.models.models import lstm_classifier
+from source.models.model_2_lstm import multiple_lstm_classifier
 
 def train():
     parser = argparse.ArgumentParser(description='NA')
@@ -75,8 +76,9 @@ def train():
         fold += 1
     
     #result
+    print('Saving result...')
     utils.mean_result(acc, loss, val_acc, val_loss, score, config, checkpoint_path)
-
+    print('Result saved !')
 
 ######################
 if __name__ == "__main__":
