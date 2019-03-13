@@ -106,7 +106,7 @@ def rr_load_raw(file_name, label, k=1):
         r_data = [values[c[i]:c[i + k]] for i in range(len(c) - k)]
 
         # normalize_rr, after that, data will be [None, n-dimension] and same size
-        data = list(map(rr_normalize_fn(450 * k, 500 * k), r_data))
+        data = list(map(rr_normalize_fn(324 * k, 360 * k), r_data))
 
         # collect results
         return data, [label] * len(data)
@@ -162,10 +162,10 @@ def rr_normalize_fn(size=450, x_size=500):
 
         y = rr_data
         ynew = np.interp(xnew, x, y)
-        if abs(max(ynew)) > abs(min(ynew)):
-            return ynew / abs(max(ynew))
 
-        return ynew / abs(min(ynew))
+        # if abs(max(ynew)) > abs(min(ynew)):
+        #     return ynew / abs(max(ynew))
+        return (ynew - min(ynew)) / max(ynew)
     return fn
 
 
@@ -206,8 +206,8 @@ def k_fold(files, labels, k=3, load_data_fn=single_rr_load):
         y_train, y_test = labels[train_index], labels[test_index]
 
         # mapping original file to current file
-        x_train_files, y_train = mapping_file(x_train_files, y_train)
-        x_test_files, y_test = mapping_file(x_test_files, y_test)
+        #x_train_files, y_train = mapping_file(x_train_files, y_train)
+        #x_test_files, y_test = mapping_file(x_test_files, y_test)
 
         x_train_data, y_train_data = f_load_parallel(x_train_files, y_train)
         x_test_data, y_test_data = f_load_parallel(x_test_files, y_test)
@@ -276,8 +276,11 @@ def k_fold_single_rr_data_pipeline(data_path, k=3, load_data_fn=single_rr_load):
     normal_files = ['{}/Normal/{}'.format(data_path, o) for o in os.listdir('{}/Normal'.format(data_path))]
     abnormal_files = ['{}/Abnormal/{}'.format(data_path, o) for o in os.listdir('{}/Abnormal'.format(data_path))]
 
-    normal_original_files = list(set([revert_to_original_filename(o) for o in normal_files]))
-    abnormal_original_files = list(set([revert_to_original_filename(o) for o in abnormal_files]))
+    # normal_original_files = list(set([revert_to_original_filename(o) for o in normal_files]))
+    # abnormal_original_files = list(set([revert_to_original_filename(o) for o in abnormal_files]))
+
+    normal_original_files = normal_files
+    abnormal_original_files = abnormal_files
 
     files = normal_original_files + abnormal_original_files
     labels = [0] * len(normal_original_files) + [1] * len(abnormal_original_files)

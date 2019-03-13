@@ -22,7 +22,7 @@ def lstm_classifier(**kwargs):
     model.add(LSTM(int(input_vector_size), input_shape=(timesteps, int(input_vector_size)), return_sequences=False))
     #model.add(Dropout(kwargs.get('dropout', 0.5)))
 
-    model.add(Dense(dense_size, activation='sigmoid', kernel_initializer='normal'))
+    model.add(Dense(dense_size, activation='sigmoid', kernel_initializer=xav_init))
     #model.add(Dropout(kwargs.get('dropout', 0.5)))
 
     model.add(Dense(dense_size, activation='sigmoid'))

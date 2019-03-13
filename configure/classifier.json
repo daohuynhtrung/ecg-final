@@ -1,14 +1,14 @@
 {
-  "data_path": "/data/Full_data_for_ML",
+  "data_path": "/data/mitbih_csv",
   "plot_path" :"/home/run/trung/data/plot-image",
-  "input_vector_size": 450,
-  "epochs": 50,
+  "input_vector_size": 324,
+  "epochs": 1000,
   "batch_size": 128,
   "dropout": 0.5,
   "dense_size": 64,
   "label_size": 2,
-  "checkpoint": "/home/run/trung/data/output_kfold_model",
+  "checkpoint": "/data/mitbih_result",
   "load_data_fn": "source.data.DataHelper.rr_load_raw_f1",
-  "k": 5,
-  "model": "source.models.model_2_lstm.multiple_lstm_classifier"
+  "k": 10,
+  "model": "source.models.models.lstm_classifier"
 }

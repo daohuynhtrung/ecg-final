@@ -11,7 +11,12 @@ import csv
 import scipy.signal as signal
 
 kaggle = '/home/trung/py/data/kaggle_data/mitbih_test.csv'
-file_mat = '/home/trung/py/data/mitbih/'
+local_file_mat = '/home/trung/py/data/mitbih'
+local_file_csv = '/home/trung/py/data/mitbih_csv'
+server_file_mat = '/data/mitbih'
+server_file_csv = '/data/mitbih_csv'
+normal_file = [100,101,103,105,106,112,113,114,115,116,117,121,122,123,201,202,205,209,213,215,219,220,222,233,234,230,221]
+abnormal_file = [104,108,109,111,118,119,124,200,203,207,208,210,212,214,217,223,228,231,232]
 
 def read_mat(file_name):
     mat = scipy.io.loadmat(file_name)
@@ -22,18 +27,24 @@ def read_mat(file_name):
 def read_csv(file_name):
     data = pd.read_csv(file_name, header=None, engine='python')
     data = np.array(data)
-
+    r_peak = []
+    temp = []
+    for i in range(len(data)):
+        temp.append(data[i][0])
+        if data[i][1]=='R':
+            r_peak.append(i)
+    plot_data(temp,r_peak,'feafwae')
     return data
 
     
-def plot_data(data, r_peak, filename):
+def plot_data(data, r_peak, filename='plot.png'):
     temp = []
     for r in r_peak:
         temp.append(data[r])
     numeric = list(range(len(data)))
     plt.plot(numeric, data,'b-',r_peak, temp,'ro')
-    # plt.show()
-    plt.savefig(filename)
+    plt.show()
+    # plt.savefig(filename)
 
 
 def resamples():
@@ -63,48 +74,63 @@ def denoise(data):
     return smooth_data
 
 
-def data_preprocessing(filename):
+def data_preprocessing(filename, csv_filename):
     data = read_mat(filename)
-    r_denoise = r_detect(denoised_data)
-    # print(r_peak.shape)
-    return
+    # denoised_data = data
+    denoised_data = denoise(data)
 
-    listR = [0]*len(denoised_data)
-    for r in r_peak:
-        listR[r]='R'
+    window = 10
+    n=int(len(data)/window)
+    i=0
+    while i<window:
+        temp_data = []
+        for l in range(i*n,(i+1)*n):
+            temp_data.append(denoised_data[l])
 
-    csv_data = []
-    for i in range(len(denoised_data)):
-        csv_data.append([denoised_data[i],listR[i]])
+        r_peak = r_detect(temp_data)
+        listR = [0]*len(temp_data)
+        for r in r_peak:
+            listR[r]='R'
 
-    return csv_data
+        csv_data = []
+        for j in range(len(temp_data)):
+            csv_data.append([temp_data[j],listR[j]])
+        
+        name = os.path.splitext(os.path.basename(filename))[0]+ '_' +str(i)
+        csvWritename = csv_filename+'/'+name+'.csv'
+        csvFile = open(csvWritename, 'w')
+        with csvFile:
+            writer = csv.writer(csvFile)
+            writer.writerows(csv_data)
+        print('Writed data to ',csvWritename)
+        
+        i+=1
 
 
-def write_csv(file_name, data):
-    csvFile = open(file_name, 'w')
-    with csvFile:
-        writer = csv.writer(csvFile)
-        writer.writerows(data)
-    print('Writed data to ',file_name)
+def label_file():
+    label = []
+    for i in range(len(normal_file)):
+        label.append([normal_file[i],0])
+    for j in range(len(abnormal_file)):
+        label.append([abnormal_file[j],1])
+    return label
 
-# data = data_preprocessing(file_mat+'100/100m.mat')
 
-data = read_mat(file_mat+'100/100m.mat')
-sumr = 0
-window = 100
-n=int(len(data)/window)
-i=0
-while i<window:
-    mind = i*n
-    maxd = (i+1)*n
-    temp_data = []
-    for l in range(mind,maxd):
-        temp_data.append(data[l])
-    temp_data = denoise(temp_data)
-    r_peak = r_detect(temp_data)
-    plot_data(temp_data,r_peak, '/home/trung/py/data/mitbih_csv/'+str(i)+'.png')
-    sumr += len(r_peak)
-    i+=1
-    
-print(sumr)
-# plot_data(data, r_peak)
+def transformData():
+    dataFile_label = label_file()
+    for dl in dataFile_label:
+        label = '/Normal'
+        if dl[1]==1:
+            label='/Abnormal'
+        data_preprocessing(server_file_mat+'/'+str(dl[0])+'/'+str(dl[0])+'m.mat',server_file_csv+label)
+
+transformData()
+# data_preprocessing('/home/trung/py/data/mitbih/100/100m.mat', '/home/trung/py/data/mitbih_csv/Normal')
+
+# data = read_csv('/home/trung/py/data/mitbih_csv/Normal/121m_0.csv')
+# data = read_csv('/home/trung/py/data/Full_data_for_ML/Abnormal/100m1.csv')
+
+# data = read_mat('/home/trung/py/data/mitbih/109/109m.mat')[0:2000]
+# denoise_data = denoise(data)
+# r_peak = r_detect(denoise_data)
+# plot_data(denoise_data, r_peak)
