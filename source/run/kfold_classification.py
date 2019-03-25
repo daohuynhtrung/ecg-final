@@ -4,7 +4,7 @@ import shutil
 from os import path
 import numpy as np
 from tensorflow.python.keras.callbacks import ModelCheckpoint
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from source import utils
 from source.data.DataHelper import k_fold_single_rr_data_pipeline
 from source.models.models import lstm_classifier

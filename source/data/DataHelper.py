@@ -53,7 +53,7 @@ def load_n_samples_unnormalize(file_name, label, samples=1200):
         # data = rr_normalize_amplitude(r_data)
         data = list(map(rr_normalize_amplitude(samples),r_data))
 
-        return data, [label] * len(data)
+        return data, [0]*20
     except Exception as e:
         print(e)
         print(file_name)
@@ -212,7 +212,43 @@ def k_fold(files, labels, k=3, load_data_fn=single_rr_load):
         x_train_data, y_train_data = f_load_parallel(x_train_files, y_train)
         x_test_data, y_test_data = f_load_parallel(x_test_files, y_test)
 
+        print('y test d:', y_test_data.shape)
+        print('y train d:', y_train_data.shape)
         yield x_train_data, y_train_data, x_test_data, y_test_data
+
+
+def data_prepare(files, labels, test_files, test_labels, load_data_fn=single_rr_load):
+    """
+
+    :param files: name list
+    :param labels: label list, same size with files
+    :param load_data_fn: a function received file_name/data/raw_data and label, return (list of data, list of label) same size
+    :return: x_train, y_train, x_test, y_test
+    """
+
+    def f_load_parallel(file_names, labels, kthread=16):
+        arr = zip(file_names, labels)
+
+        x_data, y_data = [], []
+        with Pool(kthread) as p:
+            r = p.map(load_data_fn, arr)
+            for x_data_l, y_data_l in r:
+                x_data.extend(x_data_l)
+                y_data.extend(y_data_l)
+        
+        return np.array(x_data), np.array(y_data)
+        # return np.array(x_data), to_categorical(np.array(y_data))
+
+    x_train_files, x_test_files, y_train, y_test = train_test_split(files, labels, test_size=0.1)
+    # x_test_files = np.concatenate((x_train_files,test_files))
+    # y_test = np.concatenate((y_test,test_labels))
+    x_test_files = test_files
+    y_test = test_labels
+
+    x_train_data, y_train_data = f_load_parallel(x_train_files, y_train)
+    x_test_data, y_test_data = f_load_parallel(x_test_files, y_test)
+
+    return x_train_data, y_train_data, x_test_data, y_test_data
 
 
 def mapping_file(files, labels):
@@ -288,3 +324,25 @@ def k_fold_single_rr_data_pipeline(data_path, k=3, load_data_fn=single_rr_load):
 
     for all_data in k_fold(files=files, labels=labels, k=k, load_data_fn=load_data_fn):
         yield all_data
+
+
+def data_pipeline(data_path, k=3, load_data_fn=single_rr_load):
+    normal_files = ['{}/Normal/{}'.format(data_path, o) for o in os.listdir('{}/Normal'.format(data_path))]
+    abnormal_files = ['{}/Abnormal/{}'.format(data_path, o) for o in os.listdir('{}/Abnormal'.format(data_path))]
+    normal_test_files = ['{}/Test/Normal/{}'.format(data_path, o) for o in os.listdir('{}/Test/Normal'.format(data_path))]
+    abnormal_test_files = ['{}/Test/Abnormal/{}'.format(data_path, o) for o in os.listdir('{}/Test/Abnormal'.format(data_path))]
+    # normal_original_files = list(set([revert_to_original_filename(o) for o in normal_files]))
+    # abnormal_original_files = list(set([revert_to_original_filename(o) for o in abnormal_files]))
+
+    normal_original_files = normal_files
+    abnormal_original_files = abnormal_files
+
+    files = normal_original_files + abnormal_original_files
+    labels = [0] * len(normal_original_files) + [1] * len(abnormal_original_files)
+    files, labels = np.array(files), np.array(labels)
+
+    test_files = normal_test_files + abnormal_test_files
+    test_labels = [0] * len(normal_test_files) + [1] * len(abnormal_test_files)
+    test_files, test_labels = np.array(test_files), np.array(test_labels)
+
+    return data_prepare(files=files, labels=labels, test_files=test_files, test_labels=test_labels, load_data_fn=load_data_fn)

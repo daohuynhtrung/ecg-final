@@ -13,6 +13,7 @@ def lstm_classifier(**kwargs):
     """
     input_vector_size = kwargs.get('input_vector_size', 128)
     dense_size = kwargs.get('dense_size', 20)
+    output = kwargs.get('label_size', 2)
     timesteps = None
     xav_init = tf.contrib.layers.xavier_initializer()
     ##########
@@ -21,18 +22,12 @@ def lstm_classifier(**kwargs):
 
     model.add(LSTM(int(input_vector_size), input_shape=(timesteps, int(input_vector_size)), return_sequences=False))
 
-    model.add(Dense(dense_size, activation='sigmoid', kernel_initializer=xav_init))
+    model.add(Dense(dense_size, activation='softmax', kernel_initializer='glorot_normal'))
 
-    model.add(Dense(dense_size, activation='sigmoid'))
+    model.add(Dense(dense_size, activation='softmax', kernel_initializer='glorot_normal'))
 
-    model.add(Dense(kwargs.get('label_size', 2), activation='sigmoid'))
+    model.add(Dense(output, activation='softmax'))
     
-    #opt = optimizers.adam(lr=0.01) 
-    #model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     
-    sgd = optimizers.SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(loss='mse', optimizer=sgd, metrics=['accuracy'])
-    
-    #ada = optimizers.Adadelta(lr=0.01, rho=0.95, epsilon=None, decay=0.0)
-    #model.compile(loss='mean_squared_error', optimizer=ada, metrics = ['accuracy'])
     return model

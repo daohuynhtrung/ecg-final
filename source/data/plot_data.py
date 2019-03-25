@@ -9,14 +9,16 @@ import os
 import pandas
 import csv
 import scipy.signal as signal
+import glob
 
 kaggle = '/home/trung/py/data/kaggle_data/mitbih_test.csv'
 local_file_mat = '/home/trung/py/data/mitbih'
 local_file_csv = '/home/trung/py/data/mitbih_csv'
 server_file_mat = '/data/mitbih'
 server_file_csv = '/data/mitbih_csv'
-normal_file = [100,101,103,105,106,112,113,114,115,116,117,121,122,123,201,202,205,209,213,215,219,220,222,233,234,230,221]
-abnormal_file = [104,108,109,111,118,119,124,200,203,207,208,210,212,214,217,223,228,231,232]
+#119(1543-444), 200(1743-856), 208(1586-994+373), 210(2423-32+194),223(2029-473+72+16+17), 228(1688-365)
+normal_file = [100,101,103,105,106,112,113,114,115,116,117,121,122,123,201,202,205,209,213,215,219,220,222,234]
+abnormal_file = [104,108,109,111,118,119,124,200,203,207,208,210,212,214,217,221,223,228,230,231,232]
 
 def read_mat(file_name):
     mat = scipy.io.loadmat(file_name)
@@ -27,24 +29,22 @@ def read_mat(file_name):
 def read_csv(file_name):
     data = pd.read_csv(file_name, header=None, engine='python')
     data = np.array(data)
-    r_peak = []
-    temp = []
-    for i in range(len(data)):
-        temp.append(data[i][0])
-        if data[i][1]=='R':
-            r_peak.append(i)
-    plot_data(temp,r_peak,'feafwae')
-    return data
-
+    for i in range(20):
+        pltfile_name = '/home/trung/py/data/kaggle_data/'+str(i)+'.png'
+        plot_data(data=data[i],filename=pltfile_name)
+    print('Done')
     
-def plot_data(data, r_peak, filename='plot.png'):
+def plot_data(data, r_peak=list(), filename='plot.png'):
+    numeric = list(range(len(data)))
+    plt.plot(numeric, data,'b-')
     temp = []
     for r in r_peak:
         temp.append(data[r])
-    numeric = list(range(len(data)))
-    plt.plot(numeric, data,'b-',r_peak, temp,'ro')
-    plt.show()
-    # plt.savefig(filename)
+    if r_peak!=list():
+        plt.plot(r_peak, temp,'ro')
+    # plt.show()
+    plt.savefig(filename)
+    plt.close()
 
 
 def resamples():
@@ -122,15 +122,17 @@ def transformData():
         label = '/Normal'
         if dl[1]==1:
             label='/Abnormal'
-        data_preprocessing(server_file_mat+'/'+str(dl[0])+'/'+str(dl[0])+'m.mat',server_file_csv+label)
+        data_preprocessing(local_file_mat+'/'+str(dl[0])+'/'+str(dl[0])+'m.mat',local_file_csv+label)
 
-transformData()
-# data_preprocessing('/home/trung/py/data/mitbih/100/100m.mat', '/home/trung/py/data/mitbih_csv/Normal')
+# transformData()
 
 # data = read_csv('/home/trung/py/data/mitbih_csv/Normal/121m_0.csv')
 # data = read_csv('/home/trung/py/data/Full_data_for_ML/Abnormal/100m1.csv')
+# data = read_csv('/home/trung/py/data/kaggle_data/mitbih_test.csv')
 
-# data = read_mat('/home/trung/py/data/mitbih/109/109m.mat')[0:2000]
-# denoise_data = denoise(data)
-# r_peak = r_detect(denoise_data)
-# plot_data(denoise_data, r_peak)
+data = read_mat('/home/trung/py/data/mitbih/105/105m.mat')[0:2000]
+# data_x = scipy.signal.resample(data,int(500*len(data)/360))[0:2000]
+denoise_data = denoise(data)
+r_peak = r_detect(denoise_data)
+# print(r_peak)
+plot_data(denoise_data, r_peak)
