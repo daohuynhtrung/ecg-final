@@ -42,9 +42,9 @@ def plot_data(data, r_peak=list(), filename='plot.png'):
         temp.append(data[r])
     if r_peak!=list():
         plt.plot(r_peak, temp,'ro')
-    # plt.show()
-    plt.savefig(filename)
-    plt.close()
+    plt.show()
+    # plt.savefig(filename)
+    # plt.close()
 
 
 def resamples():
@@ -130,9 +130,8 @@ def transformData():
 # data = read_csv('/home/trung/py/data/Full_data_for_ML/Abnormal/100m1.csv')
 # data = read_csv('/home/trung/py/data/kaggle_data/mitbih_test.csv')
 
-data = read_mat('/home/trung/py/data/mitbih/105/105m.mat')[0:2000]
+# data = read_mat('/home/trung/py/data/mitbih/105/105m.mat')[0:2000]
 # data_x = scipy.signal.resample(data,int(500*len(data)/360))[0:2000]
-denoise_data = denoise(data)
-r_peak = r_detect(denoise_data)
-# print(r_peak)
-plot_data(denoise_data, r_peak)
+# denoise_data = denoise(data)
+# r_peak = r_detect(denoise_data)
+# plot_data(denoise_data, r_peak)
