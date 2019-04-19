@@ -34,7 +34,8 @@ def read_csv(file_name):
         plot_data(data=data[i],filename=pltfile_name)
     print('Done')
     
-def plot_data(data, r_peak=list(), filename='plot.png'):
+
+def plot_data(data, r_peak=list(), filename='plot.png', isSave=False):
     numeric = list(range(len(data)))
     plt.plot(numeric, data,'b-')
     temp = []
@@ -42,9 +43,12 @@ def plot_data(data, r_peak=list(), filename='plot.png'):
         temp.append(data[r])
     if r_peak!=list():
         plt.plot(r_peak, temp,'ro')
-    plt.show()
-    # plt.savefig(filename)
-    # plt.close()
+    
+    if isSave==True:
+        plt.savefig(filename)
+        plt.close()
+    else:
+        plt.show()
 
 
 def resamples():

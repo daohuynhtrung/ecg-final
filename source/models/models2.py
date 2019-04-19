@@ -1,5 +1,5 @@
 from keras import initializers
-from keras.layers import Dense, Dropout, LSTM
+from keras.layers import Dense, Dropout, LSTM, Bidirectional
 from keras.models import Sequential
 from keras import optimizers
 from keras.optimizers import SGD,adam,Adagrad,RMSprop,Adadelta
@@ -16,17 +16,23 @@ def lstm_classifier(**kwargs):
     output = kwargs.get('label_size', 2)
     timesteps = 1
     xav_init = tf.contrib.layers.xavier_initializer()
+    adam = optimizers.Adam(lr=0.01)
+    sgd = optimizers.SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
     ##########
 
     model = Sequential()
-    # model.add(LSTM(input_vector_size, input_shape=(timesteps, input_vector_size)))
-    model.add(LSTM(32 ,dropout=0.2, recurrent_dropout=0.2))
+    # model.add(LSTM(128 ,dropout=0.2, recurrent_dropout=0.2, return_sequences=True))
+    # model.add(Dropout(0.2))
+    # model.add(LSTM(128 ,dropout=0.2, recurrent_dropout=0.2, return_sequences=True))
+    # model.add(Dropout(0.2))
+    # model.add(LSTM(128 ,dropout=0.2, recurrent_dropout=0.2))
+    # model.add(Dropout(0.2))  
+    model.add(Bidirectional(LSTM(128 ,dropout=0.2, recurrent_dropout=0.2)))
     model.add(Dense(20, activation='softmax', kernel_initializer='glorot_normal'))
     model.add(Dropout(0.2))
     model.add(Dense(20, activation='softmax', kernel_initializer='glorot_normal'))
     model.add(Dropout(0.2))
     model.add(Dense(2, activation='softmax'))
-    
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     
     return model

@@ -13,13 +13,13 @@ def lstm_classifier(**kwargs):
     """
     input_vector_size = kwargs.get('input_vector_size', 128)
     dense_size = kwargs.get('dense_size', 20)
-    timesteps = None
+    timesteps = input_vector_size
     xav_init = tf.contrib.layers.xavier_initializer()
     ##########
 
     model = Sequential()
 
-    model.add(LSTM(int(input_vector_size), input_shape=(timesteps, int(input_vector_size)), return_sequences=False))
+    model.add(LSTM(int(input_vector_size), input_shape=(timesteps, 1), return_sequences=False))
 
     model.add(Dense(dense_size, activation='sigmoid', kernel_initializer=xav_init))
 

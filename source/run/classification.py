@@ -6,7 +6,7 @@ import numpy as np
 from tensorflow.python.keras.callbacks import ModelCheckpoint
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support,classification_report, confusion_matrix, label_ranking_average_precision_score, label_ranking_loss, coverage_error 
 from source import utils
-from source.data.data_stuff import data_pipeline
+from source.data.data_stuff import data_pipeline, data_pipeline2
 
 def train():
     parser = argparse.ArgumentParser(description='NA')
@@ -36,10 +36,12 @@ def train():
     shutil.copy(args.configure, checkpoint_path)
 
     # load data
-    X_train, Y_train, X_test, Y_test = data_pipeline(config['data_path'], config['k'],load_data_fn=load_data_fn)
+    X_train, Y_train, X_test, Y_test = data_pipeline2(config['data_path'], config['k'],load_data_fn=load_data_fn)
     # expand dim to [?, 1, vec_size] for LSTM
-    X_train = np.expand_dims(X_train, axis=1)
-    X_test = np.expand_dims(X_test, axis=1)
+    # X_train = np.expand_dims(X_train, axis=1)
+    # X_test = np.expand_dims(X_test, axis=1)
+    X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
+    X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
 
     # create model
     model = load_model(**config)
@@ -68,11 +70,9 @@ def train():
     
 
     y_pred = model.predict(X_test, batch_size=1024)
-    print(y_pred)
+
     y_pred = np.argmax(y_pred, axis=1)
     Y_test = np.argmax(Y_test, axis=1)
-    print(y_pred)
-    print(Y_test)
 
     print('Accuracy: ',accuracy_score(Y_test, y_pred))
     # print('Orther estimate: ',precision_recall_fscore_support(Y_test, y_pred))

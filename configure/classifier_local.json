@@ -1,14 +1,14 @@
 {
-  "data_path": "/data/Full_data_for_ML",
-  "plot_path" :"/data/plot-image",
-  "input_vector_size": 450,
-  "epochs": 2,
-  "batch_size": 128,
-  "dropout": 0.5,
-  "dense_size": 64,
+  "data_path": "/home/trung/py/data/mitbih_wfdb_local",
+  "plot_path" :"/home/run/trung/data/plot-image",
+  "input_vector_size": 324,
+  "epochs": 250,
+  "batch_size": 256,
+  "dropout": 0.2,
+  "dense_size": 20,
   "label_size": 2,
-  "checkpoint": "/home/trung/py",
-  "load_data_fn": "gtopia_ml.data.DataHelper.rr_load_raw_f1",
-  "k": 2,
-  "model": "gtopia_ml.models.models.lstm_classifier"
+  "checkpoint": "/home/trung/py/data/mitbih_result",
+  "load_data_fn": "source.data.DataHelper.rr_load_raw_f1",
+  "k": 5,
+  "model": "source.models.models2.lstm_classifier"
 }

@@ -236,8 +236,8 @@ def data_prepare(files, labels, test_files, test_labels, load_data_fn=single_rr_
                 x_data.extend(x_data_l)
                 y_data.extend(y_data_l)
         
-        return np.array(x_data), np.array(y_data)
-        # return np.array(x_data), to_categorical(np.array(y_data))
+        # return np.array(x_data), np.array(y_data)
+        return np.array(x_data), to_categorical(np.array(y_data))
 
     x_train_files, x_test_files, y_train, y_test = train_test_split(files, labels, test_size=0.1)
     # x_test_files = np.concatenate((x_train_files,test_files))

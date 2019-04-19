@@ -1,14 +1,14 @@
 {
-  "data_path": "/data/mitbih_csv2",
+  "data_path": "/data/mitbih_wfdb",
   "plot_path" :"/home/run/trung/data/plot-image",
   "input_vector_size": 324,
-  "epochs": 300,
-  "batch_size": 128,
+  "epochs": 250,
+  "batch_size": 256,
   "dropout": 0.2,
   "dense_size": 20,
   "label_size": 2,
   "checkpoint": "/data/mitbih_result",
   "load_data_fn": "source.data.DataHelper.rr_load_raw_f1",
   "k": 5,
-  "model": "source.models.models.lstm_classifier"
+  "model": "source.models.models2.lstm_classifier"
 }
