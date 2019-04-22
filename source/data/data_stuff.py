@@ -149,8 +149,7 @@ def oversampling(data, labels, multime=2):
     return np.array(new_data), np.array(new_label)
     
 
-
-def data_pipeline2(data_path, k=1, load_data_fn=0):
+def data_pipeline2(data_path):
     data_files = [i for i in glob.glob(data_path+'/*.csv')]
 
     normal_file_split = [data_path+'/'+str(nfile)+'.csv' for nfile in normal_files]
@@ -165,9 +164,9 @@ def data_pipeline2(data_path, k=1, load_data_fn=0):
     X_train, y_train = data_prepare(X_trainfiles)
     X_train, y_train = oversampling(X_train, y_train)
 
-    # X_test, y_test = data_prepare(X_testfiles)
-    testing_list = [data_path+'/'+str(f)+'.csv' for f in testing_files]
-    X_test, y_test = data_prepare(testing_list)
+    X_test, y_test = data_prepare(X_testfiles)
+    # testing_list = [data_path+'/'+str(f)+'.csv' for f in testing_files]
+    # X_test, y_test = data_prepare(testing_list)
     return X_train, y_train, X_test, y_test
 
     

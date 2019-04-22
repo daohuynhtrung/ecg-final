@@ -2,7 +2,7 @@
   "data_path": "/home/trung/py/data/mitbih_wfdb_local",
   "plot_path" :"/home/run/trung/data/plot-image",
   "input_vector_size": 324,
-  "epochs": 250,
+  "epochs": 1,
   "batch_size": 256,
   "dropout": 0.2,
   "dense_size": 20,

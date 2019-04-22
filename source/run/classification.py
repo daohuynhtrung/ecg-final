@@ -7,6 +7,7 @@ from tensorflow.python.keras.callbacks import ModelCheckpoint
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support,classification_report, confusion_matrix, label_ranking_average_precision_score, label_ranking_loss, coverage_error 
 from source import utils
 from source.data.data_stuff import data_pipeline, data_pipeline2
+from contextlib import redirect_stdout
 
 def train():
     parser = argparse.ArgumentParser(description='NA')
@@ -24,8 +25,6 @@ def train():
     fold = 0
 
     #Load function from json
-    load_data_str = config.get('load_data_fn')
-    load_data_fn, mod_name = utils.load_func_by_name(load_data_str)
     load_model_str = config.get('model')
     load_model, mod_name_model = utils.load_func_by_name(load_model_str)
 
@@ -36,7 +35,7 @@ def train():
     shutil.copy(args.configure, checkpoint_path)
 
     # load data
-    X_train, Y_train, X_test, Y_test = data_pipeline2(config['data_path'], config['k'],load_data_fn=load_data_fn)
+    X_train, Y_train, X_test, Y_test = data_pipeline2(config['data_path'])
     # expand dim to [?, 1, vec_size] for LSTM
     # X_train = np.expand_dims(X_train, axis=1)
     # X_test = np.expand_dims(X_test, axis=1)
@@ -59,8 +58,9 @@ def train():
                         callbacks=callbacks_list
                     )
     # model summary
-    # print(model.summary())
-
+    with open(checkpoint_path+'/summary.txt', 'w') as f:
+        with redirect_stdout(f):
+            model.summary() 
     # accuracy = model.evaluate(X_test, Y_test, verbose=0)
     
     # Y_pred = (Y_pred > 0.5)
@@ -75,13 +75,27 @@ def train():
     Y_test = np.argmax(Y_test, axis=1)
 
     print('Accuracy: ',accuracy_score(Y_test, y_pred))
-    # print('Orther estimate: ',precision_recall_fscore_support(Y_test, y_pred))
     print(classification_report(Y_test, y_pred))
     
-    #result
-    # print('Saving result...')
-    # utils.mean_result(acc, loss, val_acc, val_loss, score, config, checkpoint_path)
-    # print('Result saved !')
+    # Save f1 score
+    print('Saving f1...')
+    with open(checkpoint_path+'/f1-score.txt', 'w') as f:
+        with redirect_stdout(f):
+            classification_report(Y_test, y_pred)  
+    print('F1 saved !')
+    
+    history_dict = hist.history
+    # Save result
+    print('Saving result...')
+    json.dump(history_dict, open(checkpoint_path+'/result.json','w'))
+    print('Result saved !')
+
+    # Save fig
+    print('Saving fig...')
+    if utils.plot_result_by_history(history_dict, checkpoint_path):
+        print('Fig saved !')
+    else: 
+        print('Save fig failed !')
 
 ######################
 if __name__ == "__main__":
