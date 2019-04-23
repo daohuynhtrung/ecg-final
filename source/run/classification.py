@@ -73,15 +73,13 @@ def train():
 
     y_pred = np.argmax(y_pred, axis=1)
     Y_test = np.argmax(Y_test, axis=1)
-
+    f1 = classification_report(Y_test, y_pred)
     print('Accuracy: ',accuracy_score(Y_test, y_pred))
-    print(classification_report(Y_test, y_pred))
+    print(f1)
     
     # Save f1 score
     print('Saving f1...')
-    with open(checkpoint_path+'/f1-score.txt', 'w') as f:
-        with redirect_stdout(f):
-            classification_report(Y_test, y_pred)  
+    json.dump(f1,open(checkpoint_path+'/f1.json','w'),indent=4)                
     print('F1 saved !')
     
     history_dict = hist.history
