@@ -10,6 +10,7 @@ import pandas
 import csv
 import scipy.signal as signal
 import glob
+from source.data.pca import reduceDemensionPCA
 
 kaggle = '/home/trung/py/data/kaggle_data/mitbih_test.csv'
 local_file_mat = '/home/trung/py/data/mitbih'
@@ -133,9 +134,34 @@ def transformData():
 # data = read_csv('/home/trung/py/data/mitbih_csv/Normal/121m_0.csv')
 # data = read_csv('/home/trung/py/data/Full_data_for_ML/Abnormal/100m1.csv')
 # data = read_csv('/home/trung/py/data/kaggle_data/mitbih_test.csv')
+ 
+import wfdb
+def testing():
+    no = '100'
+    physionet_path = '/home/trung/py/data/mitdb'
+    record_path = physionet_path + "/" + no
+    record = wfdb.rdrecord(record_path,sampto=2500)
+    ann = wfdb.rdann(record_path, 'atr',sampto=2500)
+    # plot_annotation(record, ann)
+    data = read_mat('/home/trung/py/data/mitbih/'+ no+'/'+no+'m.mat')[0:25000]
+    # data_x = scipy.signal.resample(data,int(500*len(data)/360))[0:2000]
+    # denoise_data = denoise(data)
+    window_size = int(len(data)/2)
+    total_r = []
+    for i in range(0,len(data), window_size):
+        r_peak = r_detect(data[i:i+window_size])
+        total_r = np.concatenate((total_r,r_peak),axis=None)
+    print(total_r)
+    # plot_data(data,ann.sample)
+    # data = reduceDemensionPCA(data,30)
+    # plot_data(data)
 
-# data = read_mat('/home/trung/py/data/mitbih/105/105m.mat')[0:2000]
-# data_x = scipy.signal.resample(data,int(500*len(data)/360))[0:2000]
-# denoise_data = denoise(data)
-# r_peak = r_detect(denoise_data)
-# plot_data(denoise_data, r_peak)
+# testing()
+def concat():
+    c = []
+    a = np.array([1,2,3])
+    b = np.array([4,5,6])
+    c = np.concatenate((c,b),axis=None)
+    print(c)
+
+# testing()

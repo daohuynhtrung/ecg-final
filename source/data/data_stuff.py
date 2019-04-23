@@ -9,12 +9,15 @@ from tensorflow.keras.utils import to_categorical
 import glob
 import csv
 from source.data.plot_data import denoise, plot_data
+from source.data.pca import reduceDemensionPCA, reduceDemensionICA
+import matplotlib.pyplot as plt 
+# from source.data.plot_data import r_detect
 
 #not contain paced beat: 102, 104, 107, 217
 mitbih_file = [100,108,113,117,122,201,207,212,222,231,101,105,109,114,118,123,202,208,213,219,223,232,106,111,115,119,124,203,209,214,220,228,233,103,112,116,121,200,205,210,215,221,230,234]
-normal_files = [101,103,105,106,108,112,113,114,115,116,117,119,121,122,123,200,201,202,203,205,208,209,210,213,215,219,220,221,222,223,228,230,233,234]
-abnormal_files = [111,124,207,212,214,231,232]
-testing_files = [109, 118, 100]
+normal_files = [100,101,103,105,106,108,112,113,114,115,116,117,119,121,122,123,200,201,202,203,205,208,209,210,213,215,219,220,221,222,223,228,230,233,234]
+abnormal_files = [109,118,111,124,207,212,214,231,232]
+# testing_files = [109, 118, 100]
 physionet_path = '/home/trung/py/data/mitdb'
 csv_file_path = '/home/trung/py/data/mitbih_wfdb'
 
@@ -169,5 +172,28 @@ def data_pipeline2(data_path):
     # X_test, y_test = data_prepare(testing_list)
     return X_train, y_train, X_test, y_test
 
-    
-    
+def testing():
+    X_train, y_train, X_test, y_test = data_pipeline2('~/py/data/mitbih_wfdb_local') 
+
+    new_Xtrain = reduceDemensionPCA(X_train, 30)
+    # no = 0
+    for no in range(10):
+        numeric_old = list(range(len(X_train[no])))
+
+        numeric_new = list(range(len(new_Xtrain[no])))
+
+        # print(y_train[no])
+        # print(new_Xtrain.shape)
+        
+        # if np.array_equal(y_train[no],[1,0]):
+        #     plt.title('normal')
+        # else:
+        #     plt.title('abnormal')
+        print(y_train[no])
+        plt.subplot(2,1,1)
+        plt.plot(numeric_old, X_train[no])
+        plt.subplot(2,1,2)
+        plt.plot(numeric_new, new_Xtrain[no])
+        plt.show()
+
+# testing()
