@@ -32,7 +32,7 @@ def make_dir_epoch_time(base_path):
     :return:
     """
     # t = calendar.timegm(time.gmtime())
-    t = datetime.now(pytz.timezone('Asia/Ho_Chi_Minh')).strftime("%d-%m-%Y-%H:%M:%S")
+    t = datetime.now(pytz.timezone('Asia/Ho_Chi_Minh')).strftime("%d-%m-%Y-%H-%M-%S")
     new_path = "{}/{}".format(base_path, t)
     os.makedirs(new_path)
     return new_path
@@ -78,3 +78,20 @@ def print_result_by_json(fileName):
         plt.savefig(fileName + '/loss.png')
         plt.close()
 
+def display_result(fileName):
+    resultName = fileName + '/result.json'
+    if resultName:
+        with open(resultName, 'r') as f:
+            datastore = json.load(f)
+    print('loss\tacc\tval_loss\tval_acc')
+    for i in range(len(datastore)):
+        print(str(datastore['loss'][i])+'\t'+str(datastore['acc'][i])+'\t'+str(datastore['val_acc'][i])+'\t'+str(datastore['val_loss'][i]))
+# display_result('/home/trung/py/data/mitbih_result/22-04-2019-08:45:28')
+
+def display_f1_score(fileName):
+    resultName = fileName + '/f1.json'
+    if resultName:
+        with open(resultName, 'r') as f:
+            datastore = json.load(f)
+
+        print(datastore)
