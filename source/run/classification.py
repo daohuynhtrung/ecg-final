@@ -3,10 +3,10 @@ import json
 import shutil
 from os import path
 import numpy as np
-from tensorflow.python.keras.callbacks import ModelCheckpoint
+from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support,classification_report, confusion_matrix, label_ranking_average_precision_score, label_ranking_loss, coverage_error 
 from source import utils
-from source.data.data_stuff import data_pipeline, data_pipeline2
+from source.data.data_stuff import data_pipeline
 from contextlib import redirect_stdout
 
 def train():
@@ -27,6 +27,9 @@ def train():
     #Load function from json
     load_model_str = config.get('model')
     load_model, mod_name_model = utils.load_func_by_name(load_model_str)
+    load_data_str = config.get('data_processing')
+    load_data, mod_name_data = utils.load_func_by_name(load_data_str)
+
 
     #create checkpoint path
     checkpoint_path = utils.make_dir_epoch_time(config['checkpoint'])
@@ -35,7 +38,7 @@ def train():
     shutil.copy(args.configure, checkpoint_path)
 
     # load data
-    X_train, Y_train, X_test, Y_test = data_pipeline2(config['data_path'])
+    X_train, Y_train, X_test, Y_test = load_data(config['data_path'])
     # expand dim to [?, 1, vec_size] for LSTM
     # X_train = np.expand_dims(X_train, axis=1)
     # X_test = np.expand_dims(X_test, axis=1)
@@ -48,7 +51,9 @@ def train():
     # checkpoint
     filepath = checkpoint_path + "/" + "cls-{epoch:02d}-{val_acc:.2f}.hdf5"
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
-    callbacks_list = [checkpoint]
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=10)
+    callbacks_list = [es]
+
 
     hist = model.fit(x=X_train, y=Y_train,
                         batch_size=config['batch_size'],
@@ -78,22 +83,26 @@ def train():
     print(f1)
     
     # Save f1 score
-    print('Saving f1...')
-    json.dump(f1,open(checkpoint_path+'/f1.json','w'),indent=4)                
-    print('F1 saved !')
+    json.dump(f1,open(checkpoint_path+'/f1.json','w')) 
     
     history_dict = hist.history
     # Save result
-    print('Saving result...')
     json.dump(history_dict, open(checkpoint_path+'/result.json','w'))
-    print('Result saved !')
 
     # Save fig
-    print('Saving fig...')
-    if utils.plot_result_by_history(history_dict, checkpoint_path):
-        print('Fig saved !')
-    else: 
-        print('Save fig failed !')
+    utils.plot_result_by_history(history_dict, checkpoint_path)
+
+    #Save difference result
+    n_dif = 0
+    a_dif = 0
+    dif = [Y_test[i] for i in range(len(y_pred)) if y_pred[i]!=Y_test[i]]
+    for i in dif:
+        if i==0:
+            n_dif+=1
+        else:
+            a_dif+=1
+    print('normal wrong: ', n_dif)
+    print('abnormal wrong: ', a_dif)
 
 ######################
 if __name__ == "__main__":
