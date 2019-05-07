@@ -21,13 +21,19 @@ def lstm_classifier(**kwargs):
     ##########
 
     model = Sequential()
-    model.add(Bidirectional(CuDNNLSTM(64)))
+    model.add(Bidirectional(CuDNNLSTM(64))) 
+    # model.add(Dropout(0.2))
+    model.add(Dense(20, 
+                    activation='sigmoid', 
+                    kernel_initializer='glorot_normal',
+                    activity_regularizer=regularizers.l2(0.001)))
+    model.add(Dropout(0.2))
     model.add(Dense(20, 
                     activation='sigmoid', 
                     kernel_initializer='glorot_normal',
                     activity_regularizer=regularizers.l2(0.001)))
     model.add(Dropout(0.2))
     model.add(Dense(2, activation='sigmoid'))
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     
     return model

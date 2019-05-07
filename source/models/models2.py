@@ -1,5 +1,5 @@
-from keras import initializers
-from keras.layers import Dense, Dropout, LSTM, Bidirectional
+from keras import initializers, regularizers
+from keras.layers import Dense, Dropout, CuDNNLSTM, Bidirectional
 from keras.models import Sequential
 from keras import optimizers
 from keras.optimizers import SGD,adam,Adagrad,RMSprop,Adadelta
@@ -27,10 +27,14 @@ def lstm_classifier(**kwargs):
     # model.add(Dropout(0.2))
     # model.add(LSTM(128 ,dropout=0.2, recurrent_dropout=0.2))
     # model.add(Dropout(0.2))  
-    model.add(LSTM(128 ,dropout=0.2, recurrent_dropout=0.2))
-    # model.add(Dense(20, activation='softmax', kernel_initializer='glorot_normal'))
-    # model.add(Dropout(0.2))
-    model.add(Dense(20, activation='softmax', kernel_initializer='glorot_normal'))
+    model.add(CuDNNLSTM(128))
+    model.add(Dense(20, activation='softmax', 
+                    kernel_initializer='glorot_normal',
+                    activity_regularizer=regularizers.l2(0.001)))
+    model.add(Dropout(0.2))
+    model.add(Dense(20, activation='softmax', 
+                    kernel_initializer='glorot_normal',
+                    activity_regularizer=regularizers.l2(0.001)))
     model.add(Dropout(0.2))
     model.add(Dense(2, activation='softmax'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
