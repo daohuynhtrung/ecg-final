@@ -1,9 +1,10 @@
 {
   "data_path": "/data/mitbih_wfdb",
   "input_vector_size": 324,
-  "epochs": 250,
+  "epochs": 100,
   "batch_size": 256,
   "label_size": 2,
   "checkpoint": "/data/mitbih_result",
-  "model": "source.models.modelsbi.lstm_classifier"
+  "model": "source.models.modelsbi.lstm_classifier",
+  "data_processing":"source.data.data_stuff.data_pipeline_test_choosen"
 }
