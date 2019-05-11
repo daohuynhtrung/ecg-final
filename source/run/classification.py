@@ -52,14 +52,14 @@ def train():
     filepath = checkpoint_path + "/" + "cls-{epoch:02d}-{val_acc:.2f}.hdf5"
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
     es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=10)
-    callbacks_list = [es]
+    callbacks_list = [es, checkpoint]
 
 
     hist = model.fit(x=X_train, y=Y_train,
                         batch_size=config['batch_size'],
                         epochs=config['epochs'],
                         validation_data=(X_test, Y_test),
-                        shuffle=True,
+                        shuffle='True',
                         callbacks=callbacks_list
                     )
     # model summary
@@ -93,17 +93,7 @@ def train():
     utils.plot_result_by_history(history_dict, checkpoint_path)
 
     #Save difference result
-    n_dif = 0
-    a_dif = 0
-    dif = [Y_test[i] for i in range(len(y_pred)) if y_pred[i]!=Y_test[i]]
-    for i in dif:
-        if i==0:
-            n_dif+=1
-        else:
-            a_dif+=1
-    print('normal wrong: ', n_dif)
-    print('abnormal wrong: ', a_dif)
-
+    utils.save_dif_result(y_pred, Y_test, X_test, checkpoint_path)
 ######################
 if __name__ == "__main__":
     train()

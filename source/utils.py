@@ -95,3 +95,29 @@ def display_f1_score(fileName):
             datastore = json.load(f)
 
         print(datastore)
+
+def save_dif_result(y_pred, Y_test, X_test, checkpoint_path):
+    n_dif = 0
+    a_dif = 0
+    total_n = 0
+    total_a = 0
+    for i in Y_test:
+        if i==0:
+            total_n+=1
+        else:
+            total_a+=1
+
+    dif = [i for i in range(len(y_pred)) if y_pred[i]!=Y_test[i]]
+    X_test = X_test.reshape((X_test.shape[0],X_test.shape[1]))
+    X_dif = [ np.ndarray.tolist(X_test[i]) for i in dif ]
+    json.dump(X_dif,open(checkpoint_path+'/X_dif.json','w'))
+    Y_dif = [ str(Y_test[i]) for i in dif ]
+    json.dump(Y_dif,open(checkpoint_path+'/Y_dif.json','w'))
+
+    for i in dif:
+        if Y_test[i]==0:
+            n_dif+=1
+        else:
+            a_dif+=1
+    print('normal wrong: ', n_dif,'/',total_n)
+    print('abnormal wrong: ', a_dif,'/',total_a)
