@@ -6,5 +6,5 @@
   "label_size": 2,
   "checkpoint": "/data/mitbih_result",
   "model": "source.models.modelsbi.lstm_classifier",
-  "data_processing":"source.data.data_stuff.data_pipeline_test_choosen"
+  "data_processing":"source.data.data_stuff.data_pipeline"
 }
