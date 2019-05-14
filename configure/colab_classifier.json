@@ -1,0 +1,10 @@
+{
+  "data_path": "drive/My Drive/data/mitbih_wfdb",
+  "input_vector_size": 128,
+  "epochs": 100,
+  "batch_size": 256,
+  "label_size": 2,
+  "checkpoint": "drive/My Drive/data/mitbih_result",
+  "model": "models.modelsbi.lstm_classifier",
+  "data_processing": "data.data_stuff.data_pipeline"
+}
