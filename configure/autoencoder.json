@@ -1,7 +1,0 @@
-{
-  "data_path": "",
-  "input_size": 450,
-  "batch_size": 32,
-  "hidden_size": 256,
-  "code_size": 128
-}

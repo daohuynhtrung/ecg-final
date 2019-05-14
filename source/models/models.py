@@ -21,9 +21,9 @@ def lstm_classifier(**kwargs):
 
     model.add(LSTM(int(input_vector_size), input_shape=(timesteps, 1), return_sequences=False))
 
-    model.add(Dense(dense_size, activation='sigmoid', kernel_initializer=xav_init))
+    # model.add(Dense(dense_size, activation='sigmoid', kernel_initializer=xav_init))
 
-    model.add(Dense(dense_size, activation='sigmoid'))
+    # model.add(Dense(dense_size, activation='sigmoid'))
 
     model.add(Dense(kwargs.get('label_size', 2), activation='sigmoid'))
     

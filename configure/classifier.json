@@ -5,6 +5,6 @@
   "batch_size": 256,
   "label_size": 2,
   "checkpoint": "/data/mitbih_result",
-  "model": "source.models.modelsbi.lstm_classifier",
-  "data_processing":"source.data.data_stuff.data_pipeline"
+  "model": "models.modelsbi.lstm_classifier",
+  "data_processing":"data.data_stuff.data_pipeline"
 }

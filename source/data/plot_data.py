@@ -10,7 +10,7 @@ import pandas
 import csv
 import scipy.signal as signal
 import glob
-from source.data.pca import reduceDemensionPCA
+from data.pca import reduceDemensionPCA
 
 kaggle = '/home/trung/py/data/kaggle_data/mitbih_test.csv'
 local_file_mat = '/home/trung/py/data/mitbih'
@@ -141,28 +141,30 @@ def testing():
     physionet_path = '/home/trung/py/data/mitdb'
     record_path = physionet_path + "/" + no
     record = wfdb.rdrecord(record_path,sampto=2500)
-    ann = wfdb.rdann(record_path, 'atr',sampto=2500)
+    ann = wfdb.rdann(record_path, 'atr')
+    print(ann.__dict__.keys())
+    print(ann.label_store)
     # plot_annotation(record, ann)
-    all_data = []
-    data = read_mat('/home/trung/py/data/mitbih/'+ no+'/'+no+'m.mat')[0:25000]
-    # data_x = scipy.signal.resample(data,int(500*len(data)/360))[0:2000]
-    # denoise_data = denoise(data)
-    # window_size = int(len(data)/2)
-    # total_r = []
-    # for i in range(0,len(data), window_size):
-    #     r_peak = r_detect(data[i:i+window_size])
-    #     total_r = np.concatenate((total_r,r_peak),axis=None)
-    # print(total_r)
-    # plot_data(data,ann.sample)
-    newdata = data.reshape((len(data),1))
-    numeric = list(range(1000))
-    newdata = reduceDemensionPCA(newdata,1)
-    # plot_data(data[0])
-    plt.subplot(2,1,1)
-    plt.plot(numeric, data[0:1000])
-    plt.subplot(2,1,2)
-    plt.plot(numeric, newdata[0][0:1000])
-    plt.show()
+    # all_data = []
+    # data = read_mat('/home/trung/py/data/mitbih/'+ no+'/'+no+'m.mat')[0:25000]
+    # # data_x = scipy.signal.resample(data,int(500*len(data)/360))[0:2000]
+    # # denoise_data = denoise(data)
+    # # window_size = int(len(data)/2)
+    # # total_r = []
+    # # for i in range(0,len(data), window_size):
+    # #     r_peak = r_detect(data[i:i+window_size])
+    # #     total_r = np.concatenate((total_r,r_peak),axis=None)
+    # # print(total_r)
+    # # plot_data(data,ann.sample)
+    # newdata = data.reshape((len(data),1))
+    # numeric = list(range(1000))
+    # newdata = reduceDemensionPCA(newdata,1)
+    # # plot_data(data[0])
+    # plt.subplot(2,1,1)
+    # plt.plot(numeric, data[0:1000])
+    # plt.subplot(2,1,2)
+    # plt.plot(numeric, newdata[0][0:1000])
+    # plt.show()
 
 
 # testing()

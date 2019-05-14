@@ -1,9 +1,0 @@
-{
-  "data_path": "/data/npy_data",
-  "input_size": 450,
-  "batch_size": 4096,
-  "hidden_size": 256,
-  "code_size": 128,
-  "autoencoder_epochs": 22500,
-  "model_path":"/home/run/linh/ecg-project/gtopia_ml/models"
-}

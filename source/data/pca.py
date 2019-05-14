@@ -13,3 +13,8 @@ def reduceDemensionICA(data, n_components):
     principalComponents = ica.fit_transform(data)
     dataRestored = ica.inverse_transform(principalComponents)
     return dataRestored
+
+def PCA_reduce(data, n_components):
+    pca = PCA(n_components=n_components)
+    principalComponents = pca.fit_transform(data)
+    return principalComponents

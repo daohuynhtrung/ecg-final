@@ -8,13 +8,18 @@ from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.utils import to_categorical
 import glob
 import csv
-from source.data.plot_data import denoise, plot_data
-from source.data.pca import reduceDemensionPCA, reduceDemensionICA
+from data.plot_data import denoise, plot_data
+from data.pca import reduceDemensionPCA, reduceDemensionICA, PCA_reduce
 import matplotlib.pyplot as plt 
+import json
 # from source.data.plot_data import r_detect
 
 #not contain paced beat: 102, 104, 107, 217
 mitbih_file = [100,108,113,117,122,201,207,212,222,231,101,105,109,114,118,123,202,208,213,219,223,232,106,111,115,119,124,203,209,214,220,228,233,103,112,116,121,200,205,210,215,221,230,234]
+
+normal_class  = [100,101,103,105,106,112,113,114,115,116,117,121,122,123,201,202,205,209,213,215,219,220,222,234]
+abnormal_class = [104,108,109,111,118,119,124,200,203,207,208,210,212,214,217,221,223,228,230,231,232]
+
 normal_files = [103,105,106,108,112,113,114,115,116,117,119,121,122,123,200,201,202,203,205,208,209,210,213,215,219,220,221,222,223,228,230,233,234]
 abnormal_files = [111,124,207,212,214,231,232]
 
@@ -60,6 +65,17 @@ def write_csv(data,ann,filename, csv_filename):
         writer.writerows(csv_data)
     print('Writed data to ',csvWritename)
 
+def get_record_note(file_name):
+    record_name = os.path.dirname(file_name) 
+    record = os.path.splitext(os.path.basename(file_name))[0]
+    with open(record_name+'/mitbih_record_note.json','r') as f:
+        datastore = json.load(f)
+
+    record_age = datastore[record][1]
+    record_gender = datastore[record][0]
+   
+    return record_age, record_gender
+
 
 def data_processing():
     for file in mitbih_file:
@@ -97,7 +113,9 @@ def rr_processing(file_name,k=0,offset=0):
         r_data = []
         for i in range(len(c)-k-3):
             data = np.array(values[ c[i] : (c[i+k]+offset)])
+            rr_length = len(data)
             data = rr_normalize_time(data,360*k)
+            
             # data = rr_normalize_amplitude(data)
             r_data.append(data)
             if signal_type[c[i]]!='N' or signal_type[c[i+1]]!='N':
@@ -110,6 +128,75 @@ def rr_processing(file_name,k=0,offset=0):
         print(e)
         print(file_name)
         return [], []
+
+def rr_processing_concate_note(file_name,k=0,offset=0):
+    try:
+
+        df = pd.read_csv(file_name, header=None, engine='python')
+        record_age, record_gender = get_record_note(file_name)
+   
+        values = df.loc[:][0].tolist()
+        signal_type = df.loc[:][1].tolist()
+
+        c = [i for i in range(len(signal_type)) if signal_type[i] != '0']
+        # r_data = [values[c[i]:c[i + k]] for i in range(len(c) - k)]
+        labels = []
+        r_data = []
+        for i in range(len(c)-k-3):
+            data = np.array(values[ c[i] : (c[i+k]+offset)])
+            rr_length = len(data)
+            data = rr_normalize_time(data,360*k)
+            # data = rr_normalize_amplitude(data)
+            r_data.append(data)
+            if signal_type[c[i]]!='N' or signal_type[c[i+1]]!='N':
+                labels.append(1.)
+            else:
+                labels.append(0.)
+        r_data = PCA_reduce(r_data,125)
+        
+        final_data = []
+        for data in r_data:
+            final_data.append(np.concatenate((data,[rr_length, record_age, record_gender])))
+
+        return final_data,labels
+
+    except Exception as e:
+        print(e)
+        print('loi o day: ',file_name)
+        return [], []
+
+
+def rr_processing_na(file_name, label, k=1, offset=0):
+    try:
+        record_note = get_record_note()
+
+        df = pd.read_csv(file_name, header=None, engine='python')
+
+        values = df.loc[:][0].tolist()
+        signal_type = df.loc[:][1].tolist()
+
+        c = [i for i in range(len(signal_type)) if signal_type[i] != '0']
+        # r_data = [values[c[i]:c[i + k]] for i in range(len(c) - k)]
+        labels = []
+        r_data = []
+        for i in range(len(c)-k-3):
+            data = np.array(values[ c[i] : (c[i+k]+offset)])
+            rr_length = len(data)
+            data = rr_normalize_time(data,360*k)
+
+            # data = rr_normalize_amplitude(data)
+            r_data.append(data)
+            if signal_type[c[i]]!='N' or signal_type[c[i+1]]!='N':
+                labels.append(1.)
+            else:
+                labels.append(0.)
+        return r_data,labels
+
+    except Exception as e:
+        print(e)
+        print(file_name)
+        return [], []
+
 
 def rr_processing_multi_classes(file_name,k=0,offset=0):
     try:
@@ -153,7 +240,7 @@ def data_prepare(files):
     all_data = []
     all_label = []
     for file in files:
-        datas, labels = rr_processing(file_name=file,k=1)
+        datas, labels = rr_processing_concate_note(file_name=file,k=1)
         for data in datas:
             all_data.append(data)
         for label in labels:
@@ -178,23 +265,38 @@ def data_prepare_multi_classes(files):
     
     return np.array(all_data), to_categorical(np.array(all_label))
 
-
+def data_prepare_na(files, labels):
+    all_data = []
+    all_label = []
+    for i in len(files):
+        new_data, new_label = rr_processing_na(file[i], labels[i])
+        for data in new_data:
+            all_data.append(data)
+        for label in new_label:
+            all_label.append(label)
 
 def data_pipeline_na_split(data_path):
-    normal_file_split = [data_path+'/'+str(nfile)+'.csv' for nfile in normal_files]
-    abnormal_file_split = [data_path+'/'+str(afile)+'.csv' for afile in abnormal_files]
+    normal_file_split = [data_path+'/'+str(nfile)+'.csv' for nfile in normal_class]
+    abnormal_file_split = [data_path+'/'+str(afile)+'.csv' for afile in abnormal_class]
     
-    X_ntrain, X_ntest = train_test_split(normal_file_split,test_size=0.2,shuffle=True)
-    X_atrain, X_atest = train_test_split(abnormal_file_split,test_size=0.2,shuffle=True)
-    
+    label_normal = [0.]*len(normal_file_split)
+    label_abnormal = [1.]*len(abnormal_file_split)
+
+    X_ntrain, X_ntest, Y_ntrain, Y_ntest = train_test_split(normal_file_split, label_normal,test_size=0.2,shuffle=True)
+    X_atrain, X_atest, Y_atrain, Y_atest = train_test_split(abnormal_file_split, label_abnormal,test_size=0.2,shuffle=True)
+
     X_trainfiles = X_atrain + X_ntrain
     X_testfiles = X_atest + X_ntest
+    Y_trainfiles = Y_ntrain + Y_atrain
+    Y_testfiles = Y_ntest + Y_atest
 
-    X_train, y_train = data_prepare(X_trainfiles)
-    X_train, y_train = oversampling(X_train, y_train)
-    # X_test, y_test = data_prepare(X_testfiles)
-    testing_list = [data_path+'/'+str(f)+'.csv' for f in testing_files]
-    X_test, y_test = data_prepare(testing_list)
+    X_train, y_train = data_prepare_na(X_trainfiles, Y_trainfiles)
+    X_test, y_test = data_prepare_na(X_testfiles, Y_testfiles)
+
+    # X_train, y_train = oversampling(X_train, y_train)
+    
+    # testing_list = [data_path+'/'+str(f)+'.csv' for f in testing_files]
+    # X_test, y_test = data_prepare(testing_list)
 
     return X_train, y_train, X_test, y_test
 
@@ -349,20 +451,22 @@ def data_testing(data_path):
 
 def testing():
     X_train, y_train, X_test, y_test = data_pipeline('/home/trung/py/data/mitbih_wfdb_local') 
-    return
-    new_Xtrain = reduceDemensionPCA(X_train, 30)
+    print(X_train.shape)
+    # return
+    # new_Xtrain = reduceDemensionPCA(X_train, 30)
+    # new_Xtrain  = PCA_reduce(X_train,128)
 
-    for no in range(10):
-        numeric_old = list(range(len(X_train[no])))
+    # for no in range(10):
+    #     numeric_old = list(range(len(X_train[no])))
 
-        numeric_new = list(range(len(new_Xtrain[no])))
+    #     numeric_new = list(range(len(new_Xtrain[no])))
 
-        print(y_train[no])
-        plt.subplot(2,1,1)
-        plt.plot(numeric_old, X_train[no])
-        plt.subplot(2,1,2)
-        plt.plot(numeric_new, new_Xtrain[no])
-        plt.show()
+    #     print(y_train[no])
+    #     plt.subplot(2,1,1)
+    #     plt.plot(numeric_old, X_train[no])
+    #     plt.subplot(2,1,2)
+    #     plt.plot(numeric_new, new_Xtrain[no])
+    #     plt.show()
 
 # testing()
 # data_pipeline_test_choosen('/data/mitbih_wfdb')
