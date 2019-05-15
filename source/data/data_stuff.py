@@ -1,4 +1,5 @@
 import numpy as np
+import importlib
 import wfdb
 import random
 import os
@@ -76,6 +77,11 @@ def get_record_note(file_name):
    
     return record_age, record_gender
 
+def load_function(func_str):
+    mod_name, func_name = func_str.rsplit('.', 1)
+    mod = importlib.import_module(mod_name)
+    func = getattr(mod, func_name)
+    return func
 
 def data_processing():
     for file in mitbih_file:
@@ -156,7 +162,8 @@ def rr_processing_concate_note(file_name,k=0,offset=0):
         
         final_data = []
         for data in r_data:
-            final_data.append(np.concatenate((data,[rr_length, record_age, record_gender])))
+            # normalize and concate record info
+            final_data.append(np.concatenate((data,[rr_length/100, record_age/100, record_gender])))
 
         return final_data,labels
 
@@ -235,12 +242,13 @@ def rr_processing_multi_classes(file_name,k=0,offset=0):
         return [], []
 
 
-def data_prepare(files):
-    
+def data_prepare(files, config):
+    rr_processing_func = load_function(config['rr_processing_function'])
+
     all_data = []
     all_label = []
     for file in files:
-        datas, labels = rr_processing_concate_note(file_name=file,k=1)
+        datas, labels = rr_processing_func(file_name=file,k=1)
         for data in datas:
             all_data.append(data)
         for label in labels:
@@ -269,7 +277,7 @@ def data_prepare_na(files, labels):
     all_data = []
     all_label = []
     for i in len(files):
-        new_data, new_label = rr_processing_na(file[i], labels[i])
+        new_data, new_label = rr_processing_na(files[i], labels[i])
         for data in new_data:
             all_data.append(data)
         for label in new_label:
@@ -401,40 +409,42 @@ def oversampling_m2o(data, labels, multime=2):
     new_label = [ i[1] for i in shuffle_data ]
     return np.array(new_data), np.array(new_label)
 
-def data_pipeline(data_path):
-    data_files = [i for i in glob.glob(data_path+'/*.csv')]
+def data_pipeline(config):
+    data_prepare_func = load_function(config['data_prepare_function'])
+
+    data_files = [i for i in glob.glob(config['data_path']+'/*.csv')]
 
     X_trainfiles, X_testfiles = train_test_split(data_files,test_size=0.2,shuffle=True)
-    print(X_testfiles)
 
-    X_train, y_train = data_prepare(X_trainfiles)
+    X_train, y_train = data_prepare_func(X_trainfiles, config)
+    X_test, y_test = data_prepare_func(X_testfiles, config)
+
+    # Using to oversampling data
     X_train, y_train = oversampling(X_train, y_train)
 
-    X_test, y_test = data_prepare(X_testfiles)
+    # Using to denoise
     # Xtrain = reduceDemensionPCA(X_train, 30)
     # Xtest = reduceDemensionPCA(X_test, 30)
-    # testing_list = [data_path+'/'+str(f)+'.csv' for f in testing_files]
-    # X_test, y_test = data_prepare(testing_list)
     return X_train, y_train, X_test, y_test
 
-def data_pipeline_test_choosen(data_path):
+def data_pipeline_test_choosen(config):
     testing_set = testing_set3
     training_set = list(set(mitbih_file)-set(testing_set))
-    training_files = [data_path+'/'+str(training_file)+'.csv' for training_file in training_set]
-    testing_files = [data_path+'/'+str(testing_file)+'.csv' for testing_file in testing_set]
+    training_files = [config['data_path']+'/'+str(training_file)+'.csv' for training_file in training_set]
+    testing_files = [config['data_path']+'/'+str(testing_file)+'.csv' for testing_file in testing_set]
     
-    X_train, y_train = data_prepare(training_files)
-    X_test, y_test = data_prepare(testing_files)
+    X_train, y_train = data_prepare(training_files, config)
+    X_test, y_test = data_prepare(testing_files, config)
 
     X_train, y_train = oversampling(X_train, y_train)
 
     return X_train, y_train, X_test, y_test
 
-def data_pipeline_test_choosen_multi_classes(data_path):
+def data_pipeline_test_choosen_multi_classes(config):
     testing_set = testing_set2
     training_set = list(set(mitbih_file)-set(testing_set))
-    training_files = [data_path+'/'+str(training_file)+'.csv' for training_file in training_set]
-    testing_files = [data_path+'/'+str(testing_file)+'.csv' for testing_file in testing_set]
+    training_files = [config['data_path']+'/'+str(training_file)+'.csv' for training_file in training_set]
+    testing_files = [config['data_path']+'/'+str(testing_file)+'.csv' for testing_file in testing_set]
     
     X_train, y_train = data_prepare_multi_classes(training_files)
     X_test, y_test = data_prepare_multi_classes(testing_files)
@@ -443,9 +453,9 @@ def data_pipeline_test_choosen_multi_classes(data_path):
 
     return X_train, y_train, X_test, y_test
 
-def data_testing(data_path):
+def data_testing(config):
     testing_set = testing_set0
-    testing_files = [data_path+'/'+str(testing_file)+'.csv' for testing_file in testing_set]
+    testing_files = [config['data_path']+'/'+str(testing_file)+'.csv' for testing_file in testing_set]
     X_test, y_test = data_prepare(testing_files)
     return X_test, y_test
 

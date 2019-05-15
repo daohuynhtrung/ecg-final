@@ -3,8 +3,11 @@
   "input_vector_size": 128,
   "epochs": 100,
   "batch_size": 256,
+  "timestep": 20,
   "label_size": 2,
   "checkpoint": "drive/My Drive/data/mitbih_result",
   "model": "models.modelsbi.lstm_classifier",
-  "data_processing": "data.data_stuff.data_pipeline"
+  "data_processing": "data.data_stuff.data_pipeline",
+  "rr_processing_function": "data.data_stuff.rr_processing_concate_note",
+  "data_prepare_function": "data.data_stuff.data_prepare"
 }

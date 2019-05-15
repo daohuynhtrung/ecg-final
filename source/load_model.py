@@ -21,7 +21,7 @@ def load_model_to_estimate(modelName):
 
     model = load_model(modelName)
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-    X_test, Y_test = data_testing(config['data_path'])
+    X_test, Y_test = data_testing(config)
     X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
     y_pred = model.predict(X_test, batch_size=1024)
 

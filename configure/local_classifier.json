@@ -6,5 +6,7 @@
   "label_size": 2,
   "checkpoint": "home/trung/py/data/mitbih_result",
   "model": "models.models.lstm_classifier",
-  "data_processing":"data.data_stuff.data_pipeline_test_choosen"
+  "data_processing":"data.data_stuff.data_pipeline",
+  "rr_processing_function": "data.data_stuff.rr_processing_concate_note",
+  "data_prepare_function": "data.data_stuff.data_prepare"
 }

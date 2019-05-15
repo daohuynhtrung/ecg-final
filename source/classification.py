@@ -38,7 +38,7 @@ def train():
     shutil.copy(args.configure, checkpoint_path)
 
     # load data
-    X_train, Y_train, X_test, Y_test = load_data(config['data_path'])
+    X_train, Y_train, X_test, Y_test = load_data(config)
     # expand dim to [?, 1, vec_size] for LSTM
     # X_train = np.expand_dims(X_train, axis=1)
     # X_test = np.expand_dims(X_test, axis=1)
