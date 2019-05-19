@@ -3,6 +3,7 @@
 Project dùng để phát hiện bất thường ở người có bệnh tim thông qua việc phân loại điện tâm đồ.
 ## Nguồn dữ liệu sử dụng
 [Dữ liệu MIT-BIH database](https://physionet.org/physiobank/database/html/mitdbdir/mitdbdir.htm)
+
 [Dữ liệu đang sử dụng](https://drive.google.com/drive/folders/1q4b4U13_XDivYBoy2-HzXv1fLoPz8KCS?usp=sharing)
 ## Cấu trúc project
 ### Configure
