@@ -8,6 +8,7 @@ Project dùng để phát hiện bất thường ở người có bệnh tim th�
 Bao gồm những file json có tác dụng để điều chỉnh thông số của các hàm đang hiện thực. Bao gồm 2 file:
 * **colab_classification**: cấu hình project chạy trên google colab 
 * **local_classification**: cấu hình project chạy trên máy local
+
 Các tham số trong file configure là:
 * data_path: vị trí lưu dataset
 * epoch: số lần tính toán
