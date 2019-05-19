@@ -27,7 +27,9 @@ Và 2 folder:
 #### Data
 Bao gồm 2 file xử lý data:
 * **data_stuff.py**: xử lý data chuẩn bị cho mô hình phân loại
-* **plot_data.py**: xử lý data từ matlab chuyển về csv, đánh dấu đỉnh, ghi chú trong data góc,...
+* **plot_data.py**: xử lý data từ matlab chuyển về csv, đánh dấu đỉnh, ghi chú 
+trong data góc,...
+* **pca.py**: xử lý nhiễu, thu giảm chiều dữ liệu,...
 #### Model
 Chứa model cho mô hình phân loại.
 ## Run project
