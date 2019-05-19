@@ -108,9 +108,10 @@ def save_dif_result(y_pred, Y_test, X_test, checkpoint_path):
             total_a+=1
 
     dif = [i for i in range(len(y_pred)) if y_pred[i]!=Y_test[i]]
-    X_test = X_test.reshape((X_test.shape[0],X_test.shape[1]))
-    X_dif = [ np.ndarray.tolist(X_test[i]) for i in dif ]
-    json.dump(X_dif,open(checkpoint_path+'/X_dif.json','w'))
+    json.dump(dif, open(checkpoint_path+'/dif.json','w'))
+    # X_test = X_test.reshape((X_test.shape[0],X_test.shape[1]))
+    # X_dif = [ np.ndarray.tolist(X_test[i]) for i in dif ]
+    # json.dump(X_dif,open(checkpoint_path+'/X_dif.json','w'))
     Y_dif = [ str(Y_test[i]) for i in dif ]
     json.dump(Y_dif,open(checkpoint_path+'/Y_dif.json','w'))
 

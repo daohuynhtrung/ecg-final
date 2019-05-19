@@ -1,12 +1,12 @@
 {
   "data_path": "/home/trung/py/data/mitbih_wfdb_local",
-  "input_vector_size": 8,
+  "input_vector_size": 324,
   "epochs": 1,
   "batch_size": 32,
-  "label_size": 2,
-  "checkpoint": "home/trung/py/data/mitbih_result",
+  "timestep": 20,
+  "checkpoint": "/home/trung/py/data/mitbih_result",
   "model": "models.models.lstm_classifier",
-  "data_processing":"data.data_stuff.data_pipeline",
-  "rr_processing_function": "data.data_stuff.rr_processing_concate_note",
-  "data_prepare_function": "data.data_stuff.data_prepare"
+  "data_processing":"data.data_stuff.data_pipeline_na",
+  "rr_processing_function": "data.data_stuff.rr_processing",
+  "data_prepare_function": "data.data_stuff.data_prepare_na"
 }

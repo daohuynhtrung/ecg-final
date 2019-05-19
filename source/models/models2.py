@@ -21,13 +21,7 @@ def lstm_classifier(**kwargs):
     ##########
 
     model = Sequential()
-    # model.add(LSTM(128 ,dropout=0.2, recurrent_dropout=0.2, return_sequences=True))
-    # model.add(Dropout(0.2))
-    # model.add(LSTM(128 ,dropout=0.2, recurrent_dropout=0.2, return_sequences=True))
-    # model.add(Dropout(0.2))
-    # model.add(LSTM(128 ,dropout=0.2, recurrent_dropout=0.2))
-    # model.add(Dropout(0.2))  
-    model.add(CuDNNLSTM(128))
+    model.add(CuDNNLSTM(64))
     model.add(Dense(20, activation='softmax', 
                     kernel_initializer='glorot_normal',
                     activity_regularizer=regularizers.l2(0.001)))
@@ -37,6 +31,6 @@ def lstm_classifier(**kwargs):
                     activity_regularizer=regularizers.l2(0.001)))
     model.add(Dropout(0.2))
     model.add(Dense(2, activation='softmax'))
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     
     return model

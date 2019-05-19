@@ -11,7 +11,7 @@ from contextlib import redirect_stdout
 
 def train():
     parser = argparse.ArgumentParser(description='NA')
-    parser.add_argument('-c', '--configure', default='configure/classifier.json', help='JSON file')
+    parser.add_argument('-c', '--configure', default='drive/My Drive/ecg-final/configure/colab_classifier.json', help='JSON file')
     args = parser.parse_args()
 
     with open(args.configure) as f:
@@ -40,10 +40,8 @@ def train():
     # load data
     X_train, Y_train, X_test, Y_test = load_data(config)
     # expand dim to [?, 1, vec_size] for LSTM
-    # X_train = np.expand_dims(X_train, axis=1)
-    # X_test = np.expand_dims(X_test, axis=1)
-    X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
-    X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
+    # X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
+    # X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
 
     # create model
     model = load_model(**config)
@@ -92,7 +90,7 @@ def train():
     # Save fig
     utils.plot_result_by_history(history_dict, checkpoint_path)
 
-    #Save difference result
+    #Save different result
     utils.save_dif_result(y_pred, Y_test, X_test, checkpoint_path)
 ######################
 if __name__ == "__main__":

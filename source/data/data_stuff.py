@@ -9,39 +9,31 @@ from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.utils import to_categorical
 import glob
 import csv
-from data.plot_data import denoise, plot_data
-from data.pca import reduceDemensionPCA, reduceDemensionICA, PCA_reduce
+# from data.plot_data import denoise, plot_data
+# from data.pca import reduceDemensionPCA, reduceDemensionICA, PCA_reduce
 import matplotlib.pyplot as plt 
 import json
-# from source.data.plot_data import r_detect
 
 #not contain paced beat: 102, 104, 107, 217
-mitbih_file = [100,108,113,117,122,201,207,212,222,231,101,105,109,114,118,123,202,208,213,219,223,232,106,111,115,119,124,203,209,214,220,228,233,103,112,116,121,200,205,210,215,221,230,234]
+mitbih_file = [100,108,113,117,122,207,212,222,231,101,105,109,114,118,123,202,208,213,219,223,232,106,111,115,119,124,203,209,214,220,228,233,103,112,116,121,200,205,210,215,221,230,234]
 
-normal_class  = [100,101,103,105,106,112,113,114,115,116,117,121,122,123,201,202,205,209,213,215,219,220,222,234]
-abnormal_class = [104,108,109,111,118,119,124,200,203,207,208,210,212,214,217,221,223,228,230,231,232]
+normal_files  = [100,101,103,105,106,112,113,114,115,116,117,121,122,123,202,205,209,213,215,219,220,222,234]
+abnormal_files = [108,109,111,118,119,124,200,203,207,208,210,212,214,221,223,228,230,231,232,233]
 
-normal_files = [103,105,106,108,112,113,114,115,116,117,119,121,122,123,200,201,202,203,205,208,209,210,213,215,219,220,221,222,223,228,230,233,234]
-abnormal_files = [111,124,207,212,214,231,232]
+# normal_files = [103,105,106,108,112,113,114,115,116,117,119,121,122,123,200,202,203,205,208,209,210,213,215,219,220,221,222,223,228,230,233,234]
+# abnormal_files = [111,124,207,212,214,231,232]
 
+# main testing set
 testing_set0 = [220, 233, 221]
-testing_set1 = [228, 215, 202]
-# test for multi classes
-testing_set2 = [116,215,201,207]
+testing_set1 = [220, 233, 221, 103, 230, 116, 205]
 
-# test weird normal
-testing_set3 = [105,108,114,117,203,213,219,222]
+# test normal/abnormal
+normal_test_files1 = [100,101,103,106]
+abnormal_test_files1 = [108,207,203,210]
 
 
 physionet_path = '/home/trung/py/data/mitdb'
 csv_file_path = '/home/trung/py/data/mitbih_wfdb'
-
-# record_path = physionet_path + "/100"
-# record = wfdb.rdrecord(record_path,sampto=2500)
-# ann = wfdb.rdann(record_path, 'atr',sampto=2500)
-# record_data = record.p_signal[:,0]
-# record_data = denoise(record_data)
-# plot_data(record_data,isSave=True,filename='plot3.png')
 
 
 def plot_annotation(record,ann):
@@ -135,7 +127,8 @@ def rr_processing(file_name,k=0,offset=0):
         print(file_name)
         return [], []
 
-def rr_processing_concate_note(file_name,k=0,offset=0):
+
+def rr_processing_one_for_all_timestep(file_name, timestep, k=0, offset=0):
     try:
 
         df = pd.read_csv(file_name, header=None, engine='python')
@@ -158,27 +151,40 @@ def rr_processing_concate_note(file_name,k=0,offset=0):
                 labels.append(1.)
             else:
                 labels.append(0.)
-        r_data = PCA_reduce(r_data,125)
+
+        # seq2vec
+        # r_data = PCA_reduce(r_data,125)
         
-        final_data = []
+        # concate record info
+        concatenated_data = []
         for data in r_data:
-            # normalize and concate record info
-            final_data.append(np.concatenate((data,[rr_length/100, record_age/100, record_gender])))
+            # scale and concate record info
+            concatenated_data.append(np.concatenate((data,[rr_length/10, record_age/10, record_gender*10])))
+        r_data = concatenated_data
+
+        new_label = []
+        new_data = []
+        for i in range(len(r_data)-timestep+1):
+            sample = r_data[i:(i+timestep)]
+            new_data.append(sample)
+            
+
+            
+
 
         return final_data,labels
 
     except Exception as e:
         print(e)
-        print('loi o day: ',file_name)
+        print('loi o file: ',file_name)
         return [], []
 
-
-def rr_processing_na(file_name, label, k=1, offset=0):
+def rr_processing_concate_info(file_name,k=0,offset=0):
     try:
-        record_note = get_record_note()
 
         df = pd.read_csv(file_name, header=None, engine='python')
-
+        record_age, record_gender = get_record_note(file_name)
+   
         values = df.loc[:][0].tolist()
         signal_type = df.loc[:][1].tolist()
 
@@ -190,14 +196,65 @@ def rr_processing_na(file_name, label, k=1, offset=0):
             data = np.array(values[ c[i] : (c[i+k]+offset)])
             rr_length = len(data)
             data = rr_normalize_time(data,360*k)
-
             # data = rr_normalize_amplitude(data)
             r_data.append(data)
             if signal_type[c[i]]!='N' or signal_type[c[i+1]]!='N':
                 labels.append(1.)
             else:
                 labels.append(0.)
-        return r_data,labels
+
+        # seq2vec
+        # r_data = PCA_reduce(r_data,125)
+        
+        # concate record info
+        final_data = []
+        for data in r_data:
+            # scale and concate record info
+            final_data.append(np.concatenate((data,[rr_length/10, record_age/10, record_gender*10])))
+
+        return final_data,labels
+
+    except Exception as e:
+        print(e)
+        print('loi o file: ',file_name)
+        return [], []
+
+
+def rr_processing_na(file_name, label, timestep, k=1, offset=0):
+    try:
+        record_age, record_gender = get_record_note(file_name)
+
+        df = pd.read_csv(file_name, header=None, engine='python')
+
+        values = df.loc[:][0].tolist()
+        signal_type = df.loc[:][1].tolist()
+
+        c = [i for i in range(len(signal_type)) if signal_type[i] != '0']
+        # r_data = [values[c[i]:c[i + k]] for i in range(len(c) - k)]
+        r_data = []
+        for i in range(len(c)-k-3):
+            data = np.array(values[ c[i] : (c[i+k]+offset)])
+            rr_length = len(data)
+            data = rr_normalize_time(data,360*k)
+            r_data.append(data)
+        # seq2vec
+        # r_data = PCA_reduce(r_data,125)
+        
+        # concate record info
+        concatenated_data = []
+        for data in r_data:
+            # scale and concate record info
+            concatenated_data.append(np.concatenate((data,[rr_length/10, record_age/10, record_gender*10])))
+        r_data = concatenated_data
+
+        new_data = []
+        for i in range(len(r_data)-timestep+1):
+            sample = r_data[i:(i+timestep)]
+            new_data.append(sample)
+
+        labels = [label]*len(new_data)
+
+        return new_data,labels
 
     except Exception as e:
         print(e)
@@ -255,58 +312,25 @@ def data_prepare(files, config):
             all_label.append(label)
     
     # return np.array(all_data), np.array(all_label)
+    all_data = np.array(all_data)
+    all_data = all_data.reshape((all_data.shape[0],all_data.shape[1],1))
     
-    return np.array(all_data), to_categorical(np.array(all_label))
+    return all_data, to_categorical(np.array(all_label))
 
-def data_prepare_multi_classes(files):
-    
+
+def data_prepare_na_timestep(files, labels, config):
+    timestep = config['timestep']
     all_data = []
     all_label = []
-    for file in files:
-        datas, labels = rr_processing_multi_classes(file_name=file,k=1)
-        for data in datas:
-            all_data.append(data)
-        for label in labels:
-            all_label.append(label)
-    
-    # return np.array(all_data), np.array(all_label)
-    
-    return np.array(all_data), to_categorical(np.array(all_label))
-
-def data_prepare_na(files, labels):
-    all_data = []
-    all_label = []
-    for i in len(files):
-        new_data, new_label = rr_processing_na(files[i], labels[i])
+    for i in range(len(files)):
+        new_data, new_label = rr_processing_na(files[i], labels[i], timestep)
+        
         for data in new_data:
             all_data.append(data)
         for label in new_label:
             all_label.append(label)
 
-def data_pipeline_na_split(data_path):
-    normal_file_split = [data_path+'/'+str(nfile)+'.csv' for nfile in normal_class]
-    abnormal_file_split = [data_path+'/'+str(afile)+'.csv' for afile in abnormal_class]
-    
-    label_normal = [0.]*len(normal_file_split)
-    label_abnormal = [1.]*len(abnormal_file_split)
-
-    X_ntrain, X_ntest, Y_ntrain, Y_ntest = train_test_split(normal_file_split, label_normal,test_size=0.2,shuffle=True)
-    X_atrain, X_atest, Y_atrain, Y_atest = train_test_split(abnormal_file_split, label_abnormal,test_size=0.2,shuffle=True)
-
-    X_trainfiles = X_atrain + X_ntrain
-    X_testfiles = X_atest + X_ntest
-    Y_trainfiles = Y_ntrain + Y_atrain
-    Y_testfiles = Y_ntest + Y_atest
-
-    X_train, y_train = data_prepare_na(X_trainfiles, Y_trainfiles)
-    X_test, y_test = data_prepare_na(X_testfiles, Y_testfiles)
-
-    # X_train, y_train = oversampling(X_train, y_train)
-    
-    # testing_list = [data_path+'/'+str(f)+'.csv' for f in testing_files]
-    # X_test, y_test = data_prepare(testing_list)
-
-    return X_train, y_train, X_test, y_test
+    return np.array(all_data), to_categorical(np.array(all_label))
 
 def oversampling(data, labels, multime=2):
     n_data = []
@@ -324,8 +348,6 @@ def oversampling(data, labels, multime=2):
         n_data = n_data[0:len(a_data)]
     else:
         a_data = a_data[0:len(n_data)]
-    # print(len(n_data))
-    # print(len(a_data))
     data = a_data + n_data
     shuffle_data = random.sample(data,len(data))
     new_data = [ i[0] for i in shuffle_data ]
@@ -372,38 +394,7 @@ def oversampling_multi_classes(data, labels):
     #Down Sampling
     N_data = N_data[0:40000]
 
-    # print(len(N_data))
-    # print(len(L_data))
-    # print(len(R_data))
-    # print(len(A_data))
-    # print(len(V_data))
-    # print(len(O_data))
-
     data = N_data + L_data + R_data + A_data + V_data
-    shuffle_data = random.sample(data,len(data))
-    new_data = [ i[0] for i in shuffle_data ]
-    new_label = [ i[1] for i in shuffle_data ]
-    return np.array(new_data), np.array(new_label)
-    
-def oversampling_m2o(data, labels, multime=2):
-    n_data = []
-    a_data = []
-    for i in range(len(data)):
-        if labels[i]==0.0:
-            n_data.append([data[i],labels[i]])
-        else:
-            a_data.append([data[i],labels[i]])
-    a_data = a_data*multime
-    n_data = random.sample(n_data,len(n_data))
-    a_data = random.sample(a_data,len(a_data))
-    
-    if len(n_data) > len(a_data):
-        n_data = n_data[0:len(a_data)]
-    else:
-        a_data = a_data[0:len(n_data)]
-    # print(len(n_data))
-    # print(len(a_data))
-    data = a_data + n_data
     shuffle_data = random.sample(data,len(data))
     new_data = [ i[0] for i in shuffle_data ]
     new_label = [ i[1] for i in shuffle_data ]
@@ -427,8 +418,35 @@ def data_pipeline(config):
     # Xtest = reduceDemensionPCA(X_test, 30)
     return X_train, y_train, X_test, y_test
 
+def data_pipeline_na(config):
+    normal_train = list(set(normal_files)-set(normal_test_files1))
+    abnormal_train = list(set(abnormal_files)-set(abnormal_test_files1))
+    normal_test = normal_test_files1
+    abnormal_test = abnormal_test_files1
+
+    X_ntrain = [config['data_path']+'/'+str(nfile)+'.csv' for nfile in normal_train]
+    X_atrain = [config['data_path']+'/'+str(afile)+'.csv' for afile in abnormal_train]
+    X_ntest = [config['data_path']+'/'+str(nfile)+'.csv' for nfile in normal_test]
+    X_atest = [config['data_path']+'/'+str(nfile)+'.csv' for nfile in abnormal_test]
+    
+    y_ntrain = [0.]*len(X_ntrain)
+    y_atrain = [1.]*len(X_atrain)
+    y_ntest = [0.]*len(X_ntest)
+    y_atest = [1.]*len(X_atest)
+
+    X_trainfiles = X_atrain + X_ntrain
+    X_testfiles = X_atest + X_ntest
+    y_trainfiles = y_ntrain + y_atrain
+    y_testfiles = y_ntest + y_atest
+
+    X_train, y_train = data_prepare_na_timestep(X_trainfiles, y_trainfiles, config)
+    X_test, y_test = data_prepare_na_timestep(X_testfiles, y_testfiles, config)
+
+    return X_train, y_train, X_test, y_test
+
+
 def data_pipeline_test_choosen(config):
-    testing_set = testing_set3
+    testing_set = testing_set0
     training_set = list(set(mitbih_file)-set(testing_set))
     training_files = [config['data_path']+'/'+str(training_file)+'.csv' for training_file in training_set]
     testing_files = [config['data_path']+'/'+str(testing_file)+'.csv' for testing_file in testing_set]
@@ -440,43 +458,17 @@ def data_pipeline_test_choosen(config):
 
     return X_train, y_train, X_test, y_test
 
-def data_pipeline_test_choosen_multi_classes(config):
-    testing_set = testing_set2
-    training_set = list(set(mitbih_file)-set(testing_set))
-    training_files = [config['data_path']+'/'+str(training_file)+'.csv' for training_file in training_set]
-    testing_files = [config['data_path']+'/'+str(testing_file)+'.csv' for testing_file in testing_set]
-    
-    X_train, y_train = data_prepare_multi_classes(training_files)
-    X_test, y_test = data_prepare_multi_classes(testing_files)
-
-    X_train, y_train = oversampling_multi_classes(X_train, y_train)
-
-    return X_train, y_train, X_test, y_test
-
 def data_testing(config):
-    testing_set = testing_set0
+    data_prepare_func = load_function(config['data_prepare_function'])
+    testing_set = [221]
     testing_files = [config['data_path']+'/'+str(testing_file)+'.csv' for testing_file in testing_set]
-    X_test, y_test = data_prepare(testing_files)
+    X_test, y_test = data_prepare_func(testing_files, config)
     return X_test, y_test
 
-def testing():
-    X_train, y_train, X_test, y_test = data_pipeline('/home/trung/py/data/mitbih_wfdb_local') 
-    print(X_train.shape)
-    # return
-    # new_Xtrain = reduceDemensionPCA(X_train, 30)
-    # new_Xtrain  = PCA_reduce(X_train,128)
-
-    # for no in range(10):
-    #     numeric_old = list(range(len(X_train[no])))
-
-    #     numeric_new = list(range(len(new_Xtrain[no])))
-
-    #     print(y_train[no])
-    #     plt.subplot(2,1,1)
-    #     plt.plot(numeric_old, X_train[no])
-    #     plt.subplot(2,1,2)
-    #     plt.plot(numeric_new, new_Xtrain[no])
-    #     plt.show()
+# def testing():
+#     all = normal_class + abnormal_class
+#     a = list(set(all)-set(mitbih_file))
+#     b = list(set(mitbih_file)-set(all))
+#     print(len(all))
 
 # testing()
-# data_pipeline_test_choosen('/data/mitbih_wfdb')

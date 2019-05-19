@@ -19,7 +19,7 @@ def lstm_classifier(**kwargs):
 
     model = Sequential()
 
-    model.add(LSTM(int(input_vector_size), input_shape=(timesteps, 1), return_sequences=False))
+    model.add(LSTM(32, return_sequences=False))
 
     # model.add(Dense(dense_size, activation='sigmoid', kernel_initializer=xav_init))
 
