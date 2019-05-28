@@ -10,7 +10,7 @@ from tensorflow.keras.utils import to_categorical
 import glob
 import csv
 # from data.plot_data import denoise, plot_data
-# from data.pca import reduceDemensionPCA, reduceDemensionICA, PCA_reduce
+from data.pca import reduceDemensionPCA, reduceDemensionICA, PCA_reduce
 import matplotlib.pyplot as plt 
 import json
 
@@ -98,7 +98,7 @@ def rr_normalize_amplitude(data):
     return data
 
 
-def rr_processing(file_name,k=0,offset=0):
+def rr_processing(file_name, timestep=0, k=0,offset=0):
     try:
         df = pd.read_csv(file_name, header=None, engine='python')
 
@@ -145,16 +145,15 @@ def rr_processing_one_for_all_timestep(file_name, timestep, k=0, offset=0):
             data = np.array(values[ c[i] : (c[i+k]+offset)])
             rr_length = len(data)
             data = rr_normalize_time(data,360*k)
-            # data = rr_normalize_amplitude(data)
             r_data.append(data)
             if signal_type[c[i]]!='N' or signal_type[c[i+1]]!='N':
                 labels.append(1.)
             else:
                 labels.append(0.)
+        # old_data = r_data
+        r_data = reduceDemensionPCA(r_data, 0.9)
+        # plot_some(old_data,new_data)
 
-        # seq2vec
-        # r_data = PCA_reduce(r_data,125)
-        
         # concate record info
         concatenated_data = []
         for data in r_data:
@@ -167,19 +166,19 @@ def rr_processing_one_for_all_timestep(file_name, timestep, k=0, offset=0):
         for i in range(len(r_data)-timestep+1):
             sample = r_data[i:(i+timestep)]
             new_data.append(sample)
-            
+            if(labels[i:(i+timestep)].count(1.)>2):
+                new_label.append(1.)
+            else:
+                new_label.append(0.)
 
-            
-
-
-        return final_data,labels
+        return new_data,new_label
 
     except Exception as e:
         print(e)
         print('loi o file: ',file_name)
         return [], []
 
-def rr_processing_concate_info(file_name,k=0,offset=0):
+def rr_processing_concate_info(file_name, timestep=0,k=0,offset=0):
     try:
 
         df = pd.read_csv(file_name, header=None, engine='python')
@@ -196,16 +195,12 @@ def rr_processing_concate_info(file_name,k=0,offset=0):
             data = np.array(values[ c[i] : (c[i+k]+offset)])
             rr_length = len(data)
             data = rr_normalize_time(data,360*k)
-            # data = rr_normalize_amplitude(data)
             r_data.append(data)
             if signal_type[c[i]]!='N' or signal_type[c[i+1]]!='N':
                 labels.append(1.)
             else:
                 labels.append(0.)
 
-        # seq2vec
-        # r_data = PCA_reduce(r_data,125)
-        
         # concate record info
         final_data = []
         for data in r_data:
@@ -237,8 +232,6 @@ def rr_processing_na(file_name, label, timestep, k=1, offset=0):
             rr_length = len(data)
             data = rr_normalize_time(data,360*k)
             r_data.append(data)
-        # seq2vec
-        # r_data = PCA_reduce(r_data,125)
         
         # concate record info
         concatenated_data = []
@@ -247,14 +240,15 @@ def rr_processing_na(file_name, label, timestep, k=1, offset=0):
             concatenated_data.append(np.concatenate((data,[rr_length/10, record_age/10, record_gender*10])))
         r_data = concatenated_data
 
-        new_data = []
-        for i in range(len(r_data)-timestep+1):
-            sample = r_data[i:(i+timestep)]
-            new_data.append(sample)
+        # new_data = []
+        # for i in range(len(r_data)-timestep+1):
+        #     sample = r_data[i:(i+timestep)]
+        #     new_data.append(sample)
 
-        labels = [label]*len(new_data)
+        # labels = [label]*len(new_data)
 
-        return new_data,labels
+        # return new_data,labels
+        return r_data, [label]*len(r_data)
 
     except Exception as e:
         print(e)
@@ -301,11 +295,12 @@ def rr_processing_multi_classes(file_name,k=0,offset=0):
 
 def data_prepare(files, config):
     rr_processing_func = load_function(config['rr_processing_function'])
+    timestep = config['timestep']
 
     all_data = []
     all_label = []
     for file in files:
-        datas, labels = rr_processing_func(file_name=file,k=1)
+        datas, labels = rr_processing_func(file_name=file, timestep=timestep, k=1)
         for data in datas:
             all_data.append(data)
         for label in labels:
@@ -313,7 +308,7 @@ def data_prepare(files, config):
     
     # return np.array(all_data), np.array(all_label)
     all_data = np.array(all_data)
-    all_data = all_data.reshape((all_data.shape[0],all_data.shape[1],1))
+    # all_data = all_data.reshape((all_data.shape[0],1,all_data.shape[1],1))
     
     return all_data, to_categorical(np.array(all_label))
 
@@ -411,7 +406,7 @@ def data_pipeline(config):
     X_test, y_test = data_prepare_func(X_testfiles, config)
 
     # Using to oversampling data
-    X_train, y_train = oversampling(X_train, y_train)
+    # X_train, y_train = oversampling(X_train, y_train)
 
     # Using to denoise
     # Xtrain = reduceDemensionPCA(X_train, 30)
@@ -442,11 +437,21 @@ def data_pipeline_na(config):
     X_train, y_train = data_prepare_na_timestep(X_trainfiles, y_trainfiles, config)
     X_test, y_test = data_prepare_na_timestep(X_testfiles, y_testfiles, config)
 
+    # data_prepare_func = load_function(config['data_prepare_function'])
+    # X_train, y_train = data_prepare_func(X_trainfiles, y_trainfiles, config)
+    # X_test, y_test = data_prepare_func(X_testfiles, y_testfiles, config)
+
+    # X_train = X_train.reshape((X_train.shape[0],1, X_train.shape[1]))
+    # X_test = X_test.reshape((X_test.shape[0],1, X_test.shape[1]))
+
+    print(X_train.shape)
+    print(X_test.shape)
+
     return X_train, y_train, X_test, y_test
 
 
 def data_pipeline_test_choosen(config):
-    testing_set = testing_set0
+    testing_set = testing_set1
     training_set = list(set(mitbih_file)-set(testing_set))
     training_files = [config['data_path']+'/'+str(training_file)+'.csv' for training_file in training_set]
     testing_files = [config['data_path']+'/'+str(testing_file)+'.csv' for testing_file in testing_set]
@@ -454,16 +459,33 @@ def data_pipeline_test_choosen(config):
     X_train, y_train = data_prepare(training_files, config)
     X_test, y_test = data_prepare(testing_files, config)
 
-    X_train, y_train = oversampling(X_train, y_train)
+    # X_train, y_train = oversampling(X_train, y_train)
+    print(X_train.shape)
+    print(X_test.shape)
+    print(y_train.shape)
+    print(y_test.shape)
 
     return X_train, y_train, X_test, y_test
 
 def data_testing(config):
     data_prepare_func = load_function(config['data_prepare_function'])
-    testing_set = [221]
+    testing_set = testing_set1
     testing_files = [config['data_path']+'/'+str(testing_file)+'.csv' for testing_file in testing_set]
     X_test, y_test = data_prepare_func(testing_files, config)
     return X_test, y_test
+
+
+def plot_some(old_data, new_data):
+    for i in range(10,20,1):
+        raw_data = old_data[i]
+        denoise_data = new_data[i]
+        numeric = list(range(len(raw_data)))
+        plt.subplot(211)
+        plt.plot(numeric, raw_data)
+        plt.subplot(212)
+        plt.plot(numeric, denoise_data)
+        plt.show()
+        plt.close()
 
 # def testing():
 #     all = normal_class + abnormal_class
@@ -471,4 +493,5 @@ def data_testing(config):
 #     b = list(set(mitbih_file)-set(all))
 #     print(len(all))
 
-# testing()
+# dataname = '/home/trung/py/data/mitbih_wfdb/213.csv'
+# rr_processing_one_for_all_timestep(file_name=dataname, timestep=20, k=1)

@@ -32,4 +32,4 @@ def load_model_to_estimate(modelName):
 
     utils.save_dif_result(y_pred,Y_test,X_test,path.dirname(modelName))
 
-load_model_to_estimate('drive/My Drive/data/mitbih_result/16-05-2019-09-44-26/cls-09-0.97.hdf5')
+load_model_to_estimate('drive/My Drive/data/mitbih_result/23-05-2019-14-39-22/cls-55-0.94.hdf5')

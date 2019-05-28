@@ -49,8 +49,8 @@ def train():
     # checkpoint
     filepath = checkpoint_path + "/" + "cls-{epoch:02d}-{val_acc:.2f}.hdf5"
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
-    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=10)
-    callbacks_list = [es, checkpoint]
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=5)
+    callbacks_list = [ checkpoint]
 
 
     hist = model.fit(x=X_train, y=Y_train,
@@ -64,14 +64,7 @@ def train():
     with open(checkpoint_path+'/summary.txt', 'w') as f:
         with redirect_stdout(f):
             model.summary() 
-    # accuracy = model.evaluate(X_test, Y_test, verbose=0)
-    
-    # Y_pred = (Y_pred > 0.5)
-    # Y_pred = np.argmax(Y_pred, axis=1)
-    # Y_test = np.argmax(Y_test, axis=1)
-    # score.append(accuracy_score(Y_test, Y_pred))
-    
-
+   
     y_pred = model.predict(X_test, batch_size=1024)
 
     y_pred = np.argmax(y_pred, axis=1)

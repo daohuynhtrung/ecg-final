@@ -6,7 +6,7 @@
   "timestep": 20,
   "checkpoint": "drive/My Drive/data/mitbih_result",
   "model": "models.models2.lstm_classifier",
-  "data_processing": "data.data_stuff.data_pipeline_na",
-  "rr_processing_function": "data.data_stuff.rr_processing_concate_info",
+  "data_processing": "data.data_stuff.data_pipeline_test_choosen",
+  "rr_processing_function": "data.data_stuff.rr_processing_one_for_all_timestep",
   "data_prepare_function": "data.data_stuff.data_prepare"
 }
