@@ -14,8 +14,9 @@ from data.pca import reduceDemensionPCA, reduceDemensionICA, PCA_reduce
 import matplotlib.pyplot as plt 
 import json
 
-#not contain paced beat: 102, 104, 107, 217
-mitbih_file = [100,108,113,117,122,207,212,222,231,101,105,109,114,118,123,202,208,213,219,223,232,106,111,115,119,124,203,209,214,220,228,233,103,112,116,121,200,205,210,215,221,230,234]
+#not contain paced beat: 102, 104, 107, 217, 114
+
+mitbih_file = [100,108,113,117,122,207,212,222,231,101,105,109,118,123,202,208,213,219,223,232,106,111,115,119,124,203,209,214,220,228,233,103,112,116,121,200,205,210,215,221,230,234]
 
 normal_files  = [100,101,103,105,106,112,113,114,115,116,117,121,122,123,202,205,209,213,215,219,220,222,234]
 abnormal_files = [108,109,111,118,119,124,200,203,207,208,210,212,214,221,223,228,230,231,232,233]
@@ -150,9 +151,10 @@ def rr_processing_one_for_all_timestep(file_name, timestep, k=0, offset=0):
                 labels.append(1.)
             else:
                 labels.append(0.)
-        # old_data = r_data
-        r_data = reduceDemensionPCA(r_data, 0.9)
-        # plot_some(old_data,new_data)
+
+        old_data = r_data
+        new_data = reduceDemensionPCA(r_data, 0.9)
+        plot_some(old_data,new_data)
 
         # concate record info
         concatenated_data = []
@@ -312,6 +314,24 @@ def data_prepare(files, config):
     
     return all_data, to_categorical(np.array(all_label))
 
+def data_prepare_singleRR(files, config):
+    rr_processing_func = load_function(config['rr_processing_function'])
+    timestep = config['timestep']
+
+    all_data = []
+    all_label = []
+    for file in files:
+        datas, labels = rr_processing_func(file_name=file, timestep=timestep, k=1)
+        for data in datas:
+            all_data.append(data)
+        for label in labels:
+            all_label.append(label)
+    
+    # return np.array(all_data), np.array(all_label)
+    # all_data = np.array(all_data)
+    # all_data = all_data.reshape((all_data.shape[0],1,all_data.shape[1],1))
+    
+    return all_data, to_categorical(np.array(all_label))
 
 def data_prepare_na_timestep(files, labels, config):
     timestep = config['timestep']
@@ -459,12 +479,19 @@ def data_pipeline_test_choosen(config):
     X_train, y_train = data_prepare(training_files, config)
     X_test, y_test = data_prepare(testing_files, config)
 
-    # X_train, y_train = oversampling(X_train, y_train)
+    X_train, y_train = oversampling(X_train, y_train)
+    X_train = X_train.reshape((X_train.shape[0], X_train.shape[1],1))
+    X_test = X_test.reshape((X_test.shape[0], X_test.shape[1],1))
+
     print(X_train.shape)
     print(X_test.shape)
-    print(y_train.shape)
-    print(y_test.shape)
 
+    Y_train = list(np.argmax(y_train, axis=1))
+    Y_test = list(np.argmax(y_test, axis=1))
+    print(Y_train.count(0))
+    print(Y_train.count(1))
+    print(Y_test.count(0))
+    print(Y_test.count(1))
     return X_train, y_train, X_test, y_test
 
 def data_testing(config):
@@ -472,6 +499,8 @@ def data_testing(config):
     testing_set = testing_set1
     testing_files = [config['data_path']+'/'+str(testing_file)+'.csv' for testing_file in testing_set]
     X_test, y_test = data_prepare_func(testing_files, config)
+    # X_test = np.array(X_test)
+    # X_test = X_test.reshape((X_test.shape[0], X_test.shape[1],1))
     return X_test, y_test
 
 
@@ -480,10 +509,20 @@ def plot_some(old_data, new_data):
         raw_data = old_data[i]
         denoise_data = new_data[i]
         numeric = list(range(len(raw_data)))
+
         plt.subplot(211)
         plt.plot(numeric, raw_data)
+        plt.xlabel('time')
+        plt.ylabel('amplitude')
+        plt.title('Trước khi lọc nhiễu')
+
         plt.subplot(212)
         plt.plot(numeric, denoise_data)
+        plt.xlabel('time')
+        plt.ylabel('amplitude')
+        plt.title('Sau khi lọc nhiễu')
+
+        plt.tight_layout()
         plt.show()
         plt.close()
 
@@ -493,5 +532,5 @@ def plot_some(old_data, new_data):
 #     b = list(set(mitbih_file)-set(all))
 #     print(len(all))
 
-# dataname = '/home/trung/py/data/mitbih_wfdb/213.csv'
+# dataname = '/home/trung/py/data/mitbih_wfdb/101.csv'
 # rr_processing_one_for_all_timestep(file_name=dataname, timestep=20, k=1)

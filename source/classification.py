@@ -50,7 +50,7 @@ def train():
     filepath = checkpoint_path + "/" + "cls-{epoch:02d}-{val_acc:.2f}.hdf5"
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
     es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=5)
-    callbacks_list = [ checkpoint]
+    callbacks_list = [es, checkpoint]
 
 
     hist = model.fit(x=X_train, y=Y_train,
