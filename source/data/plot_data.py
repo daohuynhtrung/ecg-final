@@ -10,8 +10,11 @@ import pandas
 import csv
 import scipy.signal as signal
 import glob
+import wfdb
 from data.pca import reduceDemensionPCA
 
+physionet_path_server = 'drive/My Drive/data/mitdb'
+physionet_path_local = '/home/trung/py/data/mitdb'
 kaggle = '/home/trung/py/data/kaggle_data/mitbih_test.csv'
 local_file_mat = '/home/trung/py/data/mitbih'
 local_file_csv = '/home/trung/py/data/mitbih_csv'
@@ -50,6 +53,7 @@ def plot_data(data, r_peak=list(), filename='plot.png', isSave=False):
         plt.close()
     else:
         plt.show()
+        plt.close()
 
 
 def resamples():
@@ -135,15 +139,18 @@ def transformData():
 # data = read_csv('/home/trung/py/data/Full_data_for_ML/Abnormal/100m1.csv')
 # data = read_csv('/home/trung/py/data/kaggle_data/mitbih_test.csv')
  
-import wfdb
-def testing():
-    no = '100'
-    physionet_path = '/home/trung/py/data/mitdb'
-    record_path = physionet_path + "/" + no
+def feature_extraction():
+    no = '220'
+    record_path = physionet_path_local + "/" + no
     record = wfdb.rdrecord(record_path,sampto=2500)
-    ann = wfdb.rdann(record_path, 'atr')
-    print(ann.__dict__.keys())
-    print(ann.label_store)
+    # ann = wfdb.rdann(record_path, 'atr',sampto=2500)
+    data = record.p_signal
+    ml2_data = data[:,0]
+    r_data = r_detect(ml2_data)
+    
+    # plot_data(ml2_data)
+    plot_data(ml2_data,r_data)
+    
     # plot_annotation(record, ann)
     # all_data = []
     # data = read_mat('/home/trung/py/data/mitbih/'+ no+'/'+no+'m.mat')[0:25000]
@@ -166,5 +173,13 @@ def testing():
     # plt.plot(numeric, newdata[0][0:1000])
     # plt.show()
 
-
-# testing()
+def plot_raw():
+    no = '220'
+    record_path = physionet_path_local + "/" + no
+    record = wfdb.rdrecord(record_path,sampto=2500)
+    # ann = wfdb.rdann(record_path, 'atr',sampto=2500)
+    data = record.p_signal
+    ml2_data = data[:,0]
+    r_data = r_detect(ml2_data)
+    
+    plot_data(ml2_data)

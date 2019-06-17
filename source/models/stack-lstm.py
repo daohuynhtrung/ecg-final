@@ -11,35 +11,27 @@ def lstm_classifier(**kwargs):
     :param kwargs: include all parameters including: input_vector_size, dropout, ...
     :return: a model ready to training
     """
-    input_vector_size = kwargs.get('input_vector_size', 128)
-    dense_size = kwargs.get('dense_size', 20)
-    output = kwargs.get('label_size', 2)
-    timesteps = 1
-    xav_init = tf.contrib.layers.xavier_initializer()
-    adam = optimizers.Adam(lr=0.01)
-    sgd = optimizers.SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
+    adam = optimizers.Adam(lr=kwargs['lr'])
     ##########
 
     model = Sequential()
+
     model.add(CuDNNLSTM(256, return_sequences=True))
     model.add(Dropout(0.2))
     model.add(CuDNNLSTM(128, return_sequences=True))
     model.add(Dropout(0.2))
     model.add(CuDNNLSTM(64))
     model.add(Dropout(0.2))
-    model.add(Dense(20, 
-                    activation='sigmoid', 
-                    kernel_initializer='glorot_normal',
-                    activity_regularizer=regularizers.l2(0.001)
-                    ))
-    model.add(Dropout(0.2))
-    model.add(Dense(20, 
-                    activation='sigmoid', 
-                    kernel_initializer='glorot_normal',
-                    activity_regularizer=regularizers.l2(0.001)
-                    ))
-    model.add(Dropout(0.2))
-    model.add(Dense(2, activation='sigmoid'))
+
+    for i in kwargs['num_layers']:
+        model.add(Dense(i,
+                        activation='softmax', 
+                        kernel_initializer='glorot_normal',
+                        activity_regularizer=regularizers.l2(0.001)
+                        ))
+        model.add(Dropout(kwargs['dropout']))
+    
+    model.add(Dense(2, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     
     return model

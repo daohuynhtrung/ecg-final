@@ -3,7 +3,7 @@ import json
 import shutil
 from os import path
 import numpy as np
-from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support,classification_report, confusion_matrix, label_ranking_average_precision_score, label_ranking_loss, coverage_error 
 import utils
 from data.data_stuff import data_pipeline
@@ -32,7 +32,7 @@ def train():
 
 
     #create checkpoint path
-    checkpoint_path = utils.make_dir_epoch_time(config['checkpoint'])
+    checkpoint_path = utils.make_dir_epoch_time(config)
 
     # copy configure file to reference later
     shutil.copy(args.configure, checkpoint_path)
@@ -48,18 +48,17 @@ def train():
     
     # checkpoint
     filepath = checkpoint_path + "/" + "cls-{epoch:02d}-{val_acc:.2f}.hdf5"
-    checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+    checkpointer = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, mode='max', save_best_only=True)
     es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=5)
-    callbacks_list = [es, checkpoint]
-
 
     hist = model.fit(x=X_train, y=Y_train,
                         batch_size=config['batch_size'],
                         epochs=config['epochs'],
                         validation_data=(X_test, Y_test),
                         shuffle='True',
-                        callbacks=callbacks_list
+                        callbacks=[checkpointer]
                     )
+
     # model summary
     with open(checkpoint_path+'/summary.txt', 'w') as f:
         with redirect_stdout(f):

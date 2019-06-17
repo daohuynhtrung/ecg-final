@@ -25,15 +25,27 @@ def load_func_by_name(func_str):
     return func, mod
 
 
-def make_dir_epoch_time(base_path):
+def make_dir_epoch_time(config):
     """
     make a new dir on base_path with epoch_time
     :param base_path:
     :return:
     """
-    # t = calendar.timegm(time.gmtime())
-    t = datetime.now(pytz.timezone('Asia/Ho_Chi_Minh')).strftime("%d-%m-%Y-%H-%M-%S")
-    new_path = "{}/{}".format(base_path, t)
+    base_path = config['checkpoint']
+    module, model, func = config['model'].rsplit('.',2)
+    ex_path = base_path + '/' + config['experiment']
+    model_path = ex_path + '/' + model
+    fc_path = model_path + '/' + str(len(config['num_layers']))
+
+    if os.path.isdir(ex_path)==False:
+        os.mkdir(ex_path)
+    if os.path.isdir(model_path)==False:
+        os.mkdir(model_path)
+    if os.path.isdir(fc_path)==False:
+        os.mkdir(fc_path)
+
+    t = datetime.now(pytz.timezone('Asia/Ho_Chi_Minh')).strftime("%H%M-%d%m")
+    new_path = "{}/{}".format(fc_path, t)
     os.makedirs(new_path)
     return new_path
 

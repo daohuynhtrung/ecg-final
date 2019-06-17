@@ -128,7 +128,7 @@ def rr_processing(file_name, timestep=0, k=0,offset=0):
         print(file_name)
         return [], []
 
-
+# 20RR data precessing
 def rr_processing_one_for_all_timestep(file_name, timestep, k=0, offset=0):
     try:
 
@@ -152,9 +152,9 @@ def rr_processing_one_for_all_timestep(file_name, timestep, k=0, offset=0):
             else:
                 labels.append(0.)
 
-        old_data = r_data
-        new_data = reduceDemensionPCA(r_data, 0.9)
-        plot_some(old_data,new_data)
+        # old_data = r_data
+        # new_data = reduceDemensionPCA(r_data, 0.99)
+        # plot_some(old_data,new_data)
 
         # concate record info
         concatenated_data = []
@@ -294,7 +294,6 @@ def rr_processing_multi_classes(file_name,k=0,offset=0):
         print(file_name)
         return [], []
 
-
 def data_prepare(files, config):
     rr_processing_func = load_function(config['rr_processing_function'])
     timestep = config['timestep']
@@ -328,8 +327,8 @@ def data_prepare_singleRR(files, config):
             all_label.append(label)
     
     # return np.array(all_data), np.array(all_label)
-    # all_data = np.array(all_data)
-    # all_data = all_data.reshape((all_data.shape[0],1,all_data.shape[1],1))
+    all_data = np.array(all_data)
+    all_data = all_data.reshape((all_data.shape[0],1,all_data.shape[1],1))
     
     return all_data, to_categorical(np.array(all_label))
 
@@ -364,52 +363,6 @@ def oversampling(data, labels, multime=2):
     else:
         a_data = a_data[0:len(n_data)]
     data = a_data + n_data
-    shuffle_data = random.sample(data,len(data))
-    new_data = [ i[0] for i in shuffle_data ]
-    new_label = [ i[1] for i in shuffle_data ]
-    return np.array(new_data), np.array(new_label)
-
-def oversampling_multi_classes(data, labels):
-    N_data = []
-    L_data = []
-    R_data = []
-    A_data = []
-    V_data = []
-    O_data = []
-
-    for i in range(len(data)):
-        if np.array_equal(labels[i],[1,0,0,0,0,0]):
-            N_data.append([data[i],labels[i]])
-        elif np.array_equal(labels[i],[0,1,0,0,0,0]):
-            L_data.append([data[i],labels[i]])
-        elif np.array_equal(labels[i],[0,0,1,0,0,0]):
-            R_data.append([data[i],labels[i]])
-        elif np.array_equal(labels[i],[0,0,0,1,0,0]):
-            A_data.append([data[i],labels[i]])
-        elif np.array_equal(labels[i],[0,0,0,0,1,0]):
-            V_data.append([data[i],labels[i]])
-        else:
-            O_data.append([data[i],labels[i]])
-
-    # UpSampling
-    L_data = L_data*2
-    R_data = R_data*2
-    A_data = A_data*3
-    V_data = V_data
-    O_data = O_data
-
-    # Shuffle
-    N_data = random.sample(N_data,len(N_data))
-    L_data = random.sample(L_data,len(L_data))
-    R_data = random.sample(R_data,len(R_data))
-    A_data = random.sample(A_data,len(A_data))
-    V_data = random.sample(V_data,len(V_data))
-    O_data = random.sample(O_data,len(O_data))
-
-    #Down Sampling
-    N_data = N_data[0:40000]
-
-    data = N_data + L_data + R_data + A_data + V_data
     shuffle_data = random.sample(data,len(data))
     new_data = [ i[0] for i in shuffle_data ]
     new_label = [ i[1] for i in shuffle_data ]
@@ -469,34 +422,35 @@ def data_pipeline_na(config):
 
     return X_train, y_train, X_test, y_test
 
-
 def data_pipeline_test_choosen(config):
+    data_prepare_func = load_function(config['data_prepare_function'])
     testing_set = testing_set1
     training_set = list(set(mitbih_file)-set(testing_set))
     training_files = [config['data_path']+'/'+str(training_file)+'.csv' for training_file in training_set]
     testing_files = [config['data_path']+'/'+str(testing_file)+'.csv' for testing_file in testing_set]
     
-    X_train, y_train = data_prepare(training_files, config)
-    X_test, y_test = data_prepare(testing_files, config)
+    X_train, y_train = data_prepare_func(training_files, config)
+    X_test, y_test = data_prepare_func(testing_files, config)
 
-    X_train, y_train = oversampling(X_train, y_train)
-    X_train = X_train.reshape((X_train.shape[0], X_train.shape[1],1))
-    X_test = X_test.reshape((X_test.shape[0], X_test.shape[1],1))
+    # X_train, y_train = oversampling(X_train, y_train)
+    # X_train = X_train.reshape((X_train.shape[0], X_train.shape[1],1))
+    # X_test = X_test.reshape((X_test.shape[0], X_test.shape[1],1))
 
     print(X_train.shape)
     print(X_test.shape)
 
-    Y_train = list(np.argmax(y_train, axis=1))
-    Y_test = list(np.argmax(y_test, axis=1))
-    print(Y_train.count(0))
-    print(Y_train.count(1))
-    print(Y_test.count(0))
-    print(Y_test.count(1))
+    # Y_train = list(np.argmax(y_train, axis=1))
+    # Y_test = list(np.argmax(y_test, axis=1))
+    # print(Y_train.count(0))
+    # print(Y_train.count(1))
+    # print(Y_test.count(0))
+    # print(Y_test.count(1))
     return X_train, y_train, X_test, y_test
 
 def data_testing(config):
     data_prepare_func = load_function(config['data_prepare_function'])
-    testing_set = testing_set1
+    # testing_set = testing_set1
+    testing_set = [221]
     testing_files = [config['data_path']+'/'+str(testing_file)+'.csv' for testing_file in testing_set]
     X_test, y_test = data_prepare_func(testing_files, config)
     # X_test = np.array(X_test)
@@ -505,7 +459,7 @@ def data_testing(config):
 
 
 def plot_some(old_data, new_data):
-    for i in range(10,20,1):
+    for i in range(4,20,1):
         raw_data = old_data[i]
         denoise_data = new_data[i]
         numeric = list(range(len(raw_data)))
@@ -526,11 +480,16 @@ def plot_some(old_data, new_data):
         plt.show()
         plt.close()
 
+        # display 1 image
+        break
+
 # def testing():
 #     all = normal_class + abnormal_class
 #     a = list(set(all)-set(mitbih_file))
 #     b = list(set(mitbih_file)-set(all))
 #     print(len(all))
 
-# dataname = '/home/trung/py/data/mitbih_wfdb/101.csv'
-# rr_processing_one_for_all_timestep(file_name=dataname, timestep=20, k=1)
+def testing_denoise():
+    dataname = '/home/trung/py/data/mitbih_wfdb/221.csv'
+    dataname_server = 'drive/My Drive/data/mitbih_wfdb/221.csv'
+    rr_processing_one_for_all_timestep(file_name=dataname, timestep=20, k=1)
